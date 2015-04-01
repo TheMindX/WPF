@@ -18,7 +18,7 @@ namespace layout1
     /// <summary>
     /// ItemListProto.xaml 的交互逻辑
     /// </summary>
-    public partial class ItemListProto : Page
+    public partial class ItemListProto : ContentControl
     {
         public ItemListProto()
         {
