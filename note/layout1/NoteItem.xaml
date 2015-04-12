@@ -4,77 +4,17 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       mc:Ignorable="d" 
-      d:DesignHeight="36" d:DesignWidth="300">
+      d:DesignWidth="300" Background="{DynamicResource ItemBGColor}" Height="Auto">
     <Grid.Resources>
-        <Style x:Key="Title" TargetType="{x:Type TextBlock}">
-            <Setter Property="TextWrapping" Value="NoWrap"/>
-            <Setter Property="TextTrimming" Value="None"/>
-            <Setter Property="Text" Value="Title"/>
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Background" Value="#FFF9F9F9"/>
-        </Style>
+        <SolidColorBrush x:Key="ItemBGColor" Color="#FFBFBEBE"></SolidColorBrush>
+        <SolidColorBrush x:Key="TextBGColor" Color="#FF8B8B8B"></SolidColorBrush>
+
         <Style x:Key="Item" TargetType="{x:Type TextBlock}">
             <Setter Property="TextWrapping" Value="NoWrap"/>
             <Setter Property="TextTrimming" Value="None"/>
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Background" Value="#FFF9F9F9"/>
-        </Style>
-        <Style x:Key="FocusVisual">
-            <Setter Property="Control.Template">
-                <Setter.Value>
-                    <ControlTemplate>
-                        <Rectangle Margin="2" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
-        <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070"/>
-        <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD"/>
-        <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1"/>
-        <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6"/>
-        <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B"/>
-        <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FFF4F4F4"/>
-        <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
-        <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FF838383"/>
-        <Style x:Key="closeBtn" TargetType="{x:Type Button}">
-            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
-            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="1"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true" Width="22" Height="22" Background="#FFFF5C5C">
-                            <TextBlock x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" Text="x"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsDefaulted" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
-                                <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
     </Grid.Resources>
     <Grid x:Name="item" Margin="5,0">
@@ -83,9 +23,11 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="32"/>
         </Grid.ColumnDefinitions>
-        <CheckBox Grid.ColumnSpan="1" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked=""/>
-        <TextBox x:Name="textBox" Grid.ColumnSpan="1" Grid.Column="1" FontSize="16" Text="Item describe" LostFocus="textBox_LostFocus" KeyDown="textBox_KeyDown" MouseLeave="textBox_MouseLeave"/>
-        <TextBlock x:Name="textBlock" Grid.ColumnSpan="1" Grid.Column="1" Style="{DynamicResource ResourceKey=Item}" Background="#FF787878" FontSize="16" Text="Item describe" MouseRightButtonUp="TextBlock_MouseRightButtonUp"/>
-        <Button Grid.ColumnSpan="1" Grid.Column="2" Content="x" Style="{DynamicResource closeBtn}"/>
+        <CheckBox Grid.ColumnSpan="1" Grid.Column="0" IsChecked="" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-4,0,0,0"/>
+        <Rectangle Grid.Column="1" Margin="0" Fill="{DynamicResource TextBGColor}"/>
+        <TextBox x:Name="textBox" Grid.ColumnSpan="1" Grid.Column="1" FontSize="16" Text="Item describe" LostFocus="textBox_LostFocus" KeyDown="textBox_KeyDown" MouseLeave="textBox_MouseLeave" HorizontalAlignment="Left" VerticalAlignment="Center" Background="{DynamicResource TextBGColor}" BorderBrush="{x:Null}" Foreground="Black"/>
+        <TextBlock x:Name="textBlock" Grid.ColumnSpan="1" Grid.Column="1" Style="{DynamicResource ResourceKey=Item}" Background="{DynamicResource TextBGColor}" FontSize="16" Text="Itdsfasdfasdfasddddddddddddddddddddddddddd" MouseRightButtonUp="TextBlock_MouseRightButtonUp" VerticalAlignment="Center" Margin="2,4,0,4" TextWrapping="Wrap"/>
+        <Button Grid.ColumnSpan="1" Grid.Column="2" Content="x" Style="{DynamicResource contextBtn}" Padding="0,1,1,1" Margin="4,0,0,0" Background="#FF781616"/>
+        
     </Grid>
 </Grid>
