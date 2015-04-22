@@ -29,7 +29,6 @@ namespace TimeSheet
             InitializeComponent();
             mPickStaus = new pickStaus(this);
             setBackgroundColor(Colors.Black);
-            repaint();
         }
 
         #region interface
@@ -68,7 +67,6 @@ namespace TimeSheet
             public List<TimeKey> selfAndAfterKeys(TimeKey key)
             {
                 List<TimeKey> ret = new List<TimeKey>();
-                bool find = false;
                 for (int i = key.idx; i < timeKeys.Count; ++i)
                 {
                     ret.Add(timeKeys[i]);
@@ -174,7 +172,7 @@ namespace TimeSheet
             set
             {
                 mPickStaus.pickPos = new Point(time2pos(value), mPickStaus.pickPos.Y);
-                //TODO repaint
+                repaint();
             }
         }
         #endregion //selection
@@ -185,6 +183,13 @@ namespace TimeSheet
             mPickStaus.reset();
             mTimeCurves.Clear();
             mCurrentTimeCurve = null;
+            repaint();
+            var window = Window.GetWindow(this);
+            window.KeyDown += window_KeyDown;
+            dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
+            dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            dispatcherTimer.Start();
         }
 
 
@@ -201,6 +206,7 @@ namespace TimeSheet
                 tcurve.color = Color.FromArgb(75, 255, 255, 255);
             }
             mTimeCurves.Add(tcurve);
+            repaint();
             return tcurve;
         }
 
@@ -289,10 +295,6 @@ namespace TimeSheet
                 }
                 set
                 {
-                    if (mStat != EStat.noPick && value == EStat.noPick)
-                    {
-                        int i = 0;
-                    }
                     _mStat = value;
 
                 }
@@ -673,15 +675,15 @@ namespace TimeSheet
 
             int currentTime = startTime;
             double currentPixel = detPixel;
-            //EditorUtils.drawRect(new Point(timeLineBeginX, timeLineBeginY), new Point(this.Width - timeLineEndX, this.Height), new Rect(), Color.FromArgb(0.2f, 0.2f, 0.2f, 1), false);
+            //EditorUtils.drawRect(new Point(timeLineBeginX, timeLineBeginY), new Point(this.ActualWidth - timeLineEndX, this.Height), new Rect(), Color.FromArgb(0.2f, 0.2f, 0.2f, 1), false);
 
             //绘制边框...
-            drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 20), new Point(this.Width - timeCurveEndX, timeCurveBeginY), Color.FromArgb(255, (byte)(0.1 * 255), (byte)(0.1 * 255), (byte)(0.1 * 255)));
-            drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 40), new Point(this.Width - timeCurveEndX, timeCurveBeginY), Color.FromArgb(255, (byte)(0.4 * 255), (byte)(0.4 * 255), (byte)(0.4 * 255)), false);
-            drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 20), new Point(this.Width - timeCurveEndX, this.Height), Color.FromArgb(255, (byte)(0.4 * 255), (byte)(0.4 * 255), (byte)(0.4 * 255)), false);
+            drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 20), new Point(this.ActualWidth - timeCurveEndX, timeCurveBeginY), Color.FromArgb(255, (byte)(0.1 * 255), (byte)(0.1 * 255), (byte)(0.1 * 255)));
+            drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 40), new Point(this.ActualWidth - timeCurveEndX, timeCurveBeginY), Color.FromArgb(255, (byte)(0.4 * 255), (byte)(0.4 * 255), (byte)(0.4 * 255)), false);
+            drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 20), new Point(this.ActualWidth - timeCurveEndX, this.Height), Color.FromArgb(255, (byte)(0.4 * 255), (byte)(0.4 * 255), (byte)(0.4 * 255)), false);
 
             //绘制刻度线....
-            while (currentPixel < this.Width - timeCurveEndX)
+            while (currentPixel < this.ActualWidth - timeCurveEndX)
             {
                 if (currentTime >= 0)
                 {
@@ -727,13 +729,13 @@ namespace TimeSheet
                 {
                     drawText(new Point(0, currentPosY), line.name, Colors.Yellow);
                     drawRect(new Point(currentPosX, currentPosY),
-                        new Point(this.Width - timeCurveEndX, currentPosY + timeLineItemHeight - pickKeyPixelWidth), Color.FromArgb(127, 255, 255, 255), true);
+                        new Point(this.ActualWidth - timeCurveEndX, currentPosY + timeLineItemHeight - pickKeyPixelWidth), Color.FromArgb(127, 255, 255, 255), true);
                 }
                 else
                 {
                     drawText(new Point(0, currentPosY), line.name, Colors.White);
                     drawRect(new Point(currentPosX, currentPosY),
-                        new Point(this.Width - timeCurveEndX, currentPosY + timeLineItemHeight - pickKeyPixelWidth), line.color, true);
+                        new Point(this.ActualWidth - timeCurveEndX, currentPosY + timeLineItemHeight - pickKeyPixelWidth), line.color, true);
                 }
 
                 var keys = line.getTimeKeys();
@@ -1084,7 +1086,7 @@ namespace TimeSheet
                         if (key.time > timeKeySelected.time)
                         {
                             var x = time2pos(key.time);
-                            var xmax = this.Width - timeCurveEndX;
+                            var xmax = this.ActualWidth - timeCurveEndX;
                             if (x > xmax)
                             {
                                 pixelStart -= xmax - x - pickKeyPixelWidth;
@@ -1100,7 +1102,7 @@ namespace TimeSheet
                     timeKeySelected = timeCurveSelected.getTimeKeys().First();
                     var x = time2pos(timeKeySelected.time);
                     var xmin = timeCurveBeginX;
-                    var xmax = this.Width - timeCurveEndX;
+                    var xmax = this.ActualWidth - timeCurveEndX;
                     if (x < xmin)
                     {
                         pixelStart -= xmin - x - pickKeyPixelWidth;
@@ -1138,7 +1140,7 @@ namespace TimeSheet
                     timeKeySelected = timeCurveSelected.getTimeKeys().Last();
                     var x = time2pos(timeKeySelected.time);
                     var xmin = timeCurveBeginX;
-                    var xmax = this.Width - timeCurveEndX;
+                    var xmax = this.ActualWidth - timeCurveEndX;
                     if (x < xmin)
                     {
                         pixelStart -= xmin - x + pickKeyPixelWidth;
@@ -1162,24 +1164,19 @@ namespace TimeSheet
         private  void OnTimedEvent(object sender, EventArgs e)
         {
             if (mReDraw)
-            {
+            {   
                 draw();
                 mReDraw = false;
             }
         }
 
-        private DispatcherTimer dispatcherTimer;
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            var window = Window.GetWindow(this);
-
-            window.KeyDown += window_KeyDown;
-            dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
-            dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
-            dispatcherTimer.Start();
-        }
+        private DispatcherTimer dispatcherTimer = null;
         #endregion
+
+        private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            repaint();
+        }
 
 
     }

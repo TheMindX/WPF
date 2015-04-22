@@ -27,14 +27,10 @@ namespace TimeSheet
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            m_timesheet.reset();
             m_timesheet.addTimeLine("abc");
             m_timesheet.addTimeLine("cde");
-            m_timesheet.repaint();
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }
