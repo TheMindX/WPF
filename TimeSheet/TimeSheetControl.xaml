@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="273" d:DesignWidth="538">
-    <Canvas x:Name="m_canvas" Background="#FFAC5F5F" MouseWheel="m_canvas_MouseWheel" PreviewMouseDown="m_canvas_PreviewMouseDown" PreviewMouseMove="m_canvas_PreviewMouseMove" PreviewMouseLeftButtonUp="m_canvas_PreviewMouseLeftButtonUp">
+             d:DesignHeight="273" d:DesignWidth="538" Loaded="UserControl_Loaded" >
+    <Canvas x:Name="m_canvas" Background="#00AC5F5F" MouseWheel="m_canvas_MouseWheel" PreviewMouseDown="m_canvas_PreviewMouseDown" PreviewMouseMove="m_canvas_PreviewMouseMove" PreviewMouseLeftButtonUp="m_canvas_PreviewMouseLeftButtonUp">
             
     </Canvas>
 </UserControl>

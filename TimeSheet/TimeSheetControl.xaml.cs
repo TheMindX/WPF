@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Timers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 
 namespace TimeSheet
@@ -26,39 +28,229 @@ namespace TimeSheet
         {
             InitializeComponent();
             mPickStaus = new pickStaus(this);
+            setBackgroundColor(Colors.Black);
+            repaint();
         }
 
+        #region interface
 
+        #region define
+        public class TimeCurve //时间曲线
+        {
+            public string name;
+            public Color color;
+
+            List<TimeKey> timeKeys = new List<TimeKey>();
+
+            public IEnumerable<TimeKey> getTimeKeys()
+            {
+                for (int i = 0; i < timeKeys.Count; ++i)
+                {
+                    yield return timeKeys[i];
+                }
+            }
+
+            public void sortByTime()
+            {
+                timeKeys.Sort((t1, t2) =>
+                {
+                    if (t1.time > t2.time) return 1;
+                    else if (t1.time == t2.time) return 0;
+                    else return -1;
+                });
+
+                for (int i = 0; i < timeKeys.Count; ++i)
+                {
+                    timeKeys[i].idx = i;
+                }
+            }
+
+            public List<TimeKey> selfAndAfterKeys(TimeKey key)
+            {
+                List<TimeKey> ret = new List<TimeKey>();
+                bool find = false;
+                for (int i = key.idx; i < timeKeys.Count; ++i)
+                {
+                    ret.Add(timeKeys[i]);
+                }
+                return ret;
+            }
+
+            public TimeKey addKey(double time, bool sync = true)
+            {
+                var tkey = new TimeKey(this, time);
+                timeKeys.Add(tkey);
+                sortByTime();
+                //TimeSheetControl.timeKeySelected = tkey;
+                if (sync && TimeSheetControl.evtOnAddTimeKey != null) TimeSheetControl.evtOnAddTimeKey(this, tkey);
+                return tkey;
+            }
+
+            public void removeKey(TimeKey tkey, bool sync = true)
+            {
+                timeKeys.Remove(tkey);
+                sortByTime();
+                if (sync && TimeSheetControl.evtOnRemoveTimeKey != null) TimeSheetControl.evtOnRemoveTimeKey(this, tkey);
+            }
+
+            public class TimeKey
+            {
+                public TimeCurve mTimeCurve;
+                double mTime;
+                public int idx = 0;
+
+                public double time
+                {
+                    get
+                    {
+                        return mTime;
+                    }
+                    set
+                    {
+                        mTime = value;
+                        if (TimeSheetControl.evtOnEditTimeKey != null)
+                            TimeSheetControl.evtOnEditTimeKey(mTimeCurve, this);
+                    }
+                }
+                public TimeKey(TimeCurve tcurve, double t)
+                {
+                    mTimeCurve = tcurve;
+                    mTime = t;
+                }
+            }
+        }
+        #endregion
         #region event
-        public static event System.Action<TimeCurve, TimeCurve.TimeKey, TimeCurve, TimeCurve.TimeKey> evtOnSelectChanged;//选择曲线
+        public static event System.Action<TimeCurve, TimeCurve.TimeKey, TimeCurve, TimeCurve.TimeKey> evtOnSelectChanged;//选择改变
         public static event System.Action<TimeCurve, TimeCurve.TimeKey> evtOnAddTimeKey;//添加key
         public static event System.Action<TimeCurve, TimeCurve.TimeKey> evtOnEditTimeKey;//编辑key
         public static event System.Action<TimeCurve, TimeCurve.TimeKey> evtOnRemoveTimeKey;//移除key
         public static event System.Action<int> evtOnMovieTime;//goto time位置
-        #endregion
+        #endregion //event
 
+        #region selectction
+        public TimeCurve timeCurveSelected
+        {
+            get
+            {
+                if (timeKeySelected != null)
+                {
+                    mCurrentTimeCurve = timeKeySelected.mTimeCurve;
+                }
+                return mCurrentTimeCurve;
+            }
+            set
+            {
+                if (value != mCurrentTimeCurve)
+                {
+                    if (evtOnSelectChanged != null)
+                    {
+                        evtOnSelectChanged(mCurrentTimeCurve, timeKeySelected, value, timeKeySelected);
+                    }
+                    mCurrentTimeCurve = value;
+                }
+
+            }
+        }
+
+        public TimeCurve.TimeKey timeKeySelected //selected 属性变化发生通知， 
+        {
+            get
+            {
+                return mPickStaus.currentKey();
+            }
+            set
+            {
+                mPickStaus.setPickedKey(timeKeySelected == null ? null : timeKeySelected.mTimeCurve, value);
+            }
+        }
+
+        public double timePick //当前pick的时间
+        {
+            get
+            {
+                return pos2time(mPickStaus.pickPos.X);
+            }
+            set
+            {
+                mPickStaus.pickPos = new Point(time2pos(value), mPickStaus.pickPos.Y);
+                //TODO repaint
+            }
+        }
+        #endregion //selection
+
+        #region edit curve & key
+        public void reset()
+        {
+            mPickStaus.reset();
+            mTimeCurves.Clear();
+            mCurrentTimeCurve = null;
+        }
+
+
+        public TimeCurve addTimeLine(string name, Color? c = null)
+        {
+            var tcurve = new TimeCurve();
+            tcurve.name = name;
+            if (c.HasValue)
+            {
+                tcurve.color = c.Value;
+            }
+            else
+            {
+                tcurve.color = Color.FromArgb(75, 255, 255, 255);
+            }
+            mTimeCurves.Add(tcurve);
+            return tcurve;
+        }
+
+
+        public TimeCurve.TimeKey setKey(TimeCurve tcv, double time)
+        {
+            timeKeySelected = tcv.addKey(time);
+            repaint();
+            return timeKeySelected;
+        }
+
+        void delKey()
+        {
+            foreach (var key in mPickStaus.getAllPicked())
+            {
+                key.mTimeCurve.removeKey(key);
+            }
+            timeKeySelected = null;
+            repaint();
+        }
+        #endregion //editkey
 
         #region config
-        const double pickKeyPixelWidth = 5;
-        const double pickBias = pickKeyPixelWidth;//5个象素偏离
+        public double timeCurveBeginX = 64;
+        public double timeCurveBeginY = 112;
+        public double timeCurveEndX = 8;
+        public double timeCurveEndY = 0;
+        public double timeLineItemHeight = 32;
+        #endregion
 
-        //const double timeCurveBeginX = 0;
-        //const double timeCurveBeginY = 0;
-        //const double timeCurveEndX = 0;
-        //const double timeCurveEndY = 0;
-        //const double timeLineItemHeight = 32;
-        //const double minTimeUnitPixels = 15;//最大
+        public void repaint()
+        {
+            mReDraw = true;
+        }
+
+        public void setBackgroundColor(Color c)
+        {
+            this.Background = new SolidColorBrush(c);
+        }
 
 
+        #endregion //interface
 
-        const double timeCurveBeginX = 64;
-        const double timeCurveBeginY = 112;
-        const double timeCurveEndX = 8;
-        const double timeCurveEndY = 0;
-        const double timeLineItemHeight = 32;
-        const double minTimeUnitPixels = 15;//最大
+
+        #region static config
+        private const double pickKeyPixelWidth = 5;
+        private const double pickBias = pickKeyPixelWidth;//5个象素偏离
+        private const double minTimeUnitPixels = 15;//最大
         //time bar 缩放的scaletor
-        int[] timeUnits = 
+        private int[] timeUnits = 
         {
             20,//20 ms
             50, 
@@ -67,13 +259,13 @@ namespace TimeSheet
             1000,
             5000,
         };
-        double time2Pixel = 0.08f;//time*viewScale = pixel //时间轴与象素的缩放比
+        private double time2Pixel = 0.08f;//time*viewScale = pixel //时间轴与象素的缩放比
         #endregion
 
 
 
         //捡选状态
-        class pickStaus
+        private class pickStaus
         {
             public pickStaus(TimeSheetControl p)
             {
@@ -271,115 +463,15 @@ namespace TimeSheet
                 set;
             }
         }
-
-        public class TimeCurve //时间曲线
-        {
-            public string name;
-            public Color color;
-
-            List<TimeKey> timeKeys = new List<TimeKey>();
-
-            public IEnumerable<TimeKey> getTimeKeys()
-            {
-                for (int i = 0; i < timeKeys.Count; ++i)
-                {
-                    yield return timeKeys[i];
-                }
-            }
-
-            public void sortByTime()
-            {
-                timeKeys.Sort((t1, t2) =>
-                {
-                    if (t1.time > t2.time) return 1;
-                    else if (t1.time == t2.time) return 0;
-                    else return -1;
-                });
-
-                for (int i = 0; i < timeKeys.Count; ++i)
-                {
-                    timeKeys[i].idx = i;
-                }
-            }
-
-            public List<TimeKey> selfAndAfterKeys(TimeKey key)
-            {
-                List<TimeKey> ret = new List<TimeKey>();
-                bool find = false;
-                for (int i = key.idx; i < timeKeys.Count; ++i)
-                {
-                    ret.Add(timeKeys[i]);
-                }
-                return ret;
-            }
-
-            public TimeKey addKey(double time, bool sync = true)
-            {
-                var tkey = new TimeKey(this, time);
-                timeKeys.Add(tkey);
-                sortByTime();
-                //TimeSheetControl.timeKeySelected = tkey;
-                if (sync && TimeSheetControl.evtOnAddTimeKey != null) TimeSheetControl.evtOnAddTimeKey(this, tkey);
-                return tkey;
-            }
-
-            public void removeKey(TimeKey tkey, bool sync = true)
-            {
-                timeKeys.Remove(tkey);
-                sortByTime();
-                if (sync && TimeSheetControl.evtOnRemoveTimeKey != null) TimeSheetControl.evtOnRemoveTimeKey(this, tkey);
-            }
-
-            public class TimeKey
-            {
-                public TimeCurve mTimeCurve;
-                double mTime;
-                public int idx = 0;
-
-                public double time
-                {
-                    get
-                    {
-                        return mTime;
-                    }
-                    set
-                    {
-                        mTime = value;
-                        if (TimeSheetControl.evtOnEditTimeKey != null)
-                            TimeSheetControl.evtOnEditTimeKey(mTimeCurve, this);
-                    }
-                }
-                public TimeKey(TimeCurve tcurve, double t)
-                {
-                    mTimeCurve = tcurve;
-                    mTime = t;
-                }
-            }
-        }
-
-
-        pickStaus mPickStaus = null;
-
+        private pickStaus mPickStaus = null;
 
         #region member
-        double pixelStart = 0;//start象素位置
-        public double timeStart//start时间位置
+        private double pixelStart = 0;//start象素位置
+        private double timeStart//start时间位置
         {
             get
             {
                 return (double)(pixelStart / time2Pixel);
-            }
-        }
-        public int timePick
-        {
-            get
-            {
-                return (int)pos2time(mPickStaus.pickPos.X);
-            }
-            set
-            {
-                mPickStaus.pickPos = new Point(time2pos(value), mPickStaus.pickPos.Y);
-                //TODO repaint
             }
         }
         #endregion
@@ -502,70 +594,11 @@ namespace TimeSheet
 
         #region method
         private TimeCurve mCurrentTimeCurve = null;
-        public TimeCurve timeCurveSelected
-        {
-            get
-            {
-                if (timeKeySelected != null)
-                {
-                    mCurrentTimeCurve = timeKeySelected.mTimeCurve;
-                }
-                return mCurrentTimeCurve;
-            }
-            set
-            {
-                if (value != mCurrentTimeCurve)
-                {
-                    if (evtOnSelectChanged != null)
-                    {
-                        evtOnSelectChanged(mCurrentTimeCurve, timeKeySelected, value, timeKeySelected);
-                    }
-                    mCurrentTimeCurve = value;
-                }
 
-            }
-        }
-
-
-        List<TimeCurve> mTimeCurves = new List<TimeCurve>();//key frame source
-        public TimeCurve.TimeKey timeKeySelected //selected 属性变化发生通知， 
-        {
-            get
-            {
-                return mPickStaus.currentKey();
-            }
-            set
-            {
-                mPickStaus.setPickedKey(timeKeySelected == null ? null : timeKeySelected.mTimeCurve, value);
-            }
-        }
-
-
-        public TimeCurve addTimeLine(string name, Color? c = null)
-        {
-            var tcurve = new TimeCurve();
-            tcurve.name = name;
-            if (c.HasValue)
-            {
-                tcurve.color = c.Value;
-            }
-            else
-            {
-                tcurve.color = Color.FromArgb(75, 255, 255, 255);
-            }
-            mTimeCurves.Add(tcurve);
-            return tcurve;
-        }
-
-        public void reset()
-        {
-            mPickStaus.reset();
-            mTimeCurves.Clear();
-            mCurrentTimeCurve = null;
-        }
+        private List<TimeCurve> mTimeCurves = new List<TimeCurve>();//key frame source
 
         //这里得到点选数据, 设置mCurrentPickPos
-        bool pickTimeRecord(Point pos, out TimeCurve tcurve, out TimeCurve.TimeKey tkey)
+        private bool pickTimeRecord(Point pos, out TimeCurve tcurve, out TimeCurve.TimeKey tkey)
         {
             bool res = false;
             if (!isInTimeSheet(pos))
@@ -602,7 +635,7 @@ namespace TimeSheet
             return res;
         }
 
-        public void setKey(Point apos)
+        private void setKey(Point apos)
         {
             TimeCurve tcurve = null;
             TimeCurve.TimeKey tkey = null;
@@ -612,13 +645,12 @@ namespace TimeSheet
                 return;
             }
             var time = pos2time(apos.X);
-            timeKeySelected = tcurve.addKey(time);
-            draw();
+            setKey(tcurve, time);
         }
         #endregion
 
         #region draw
-        public void draw()
+        private void draw()
         {
             m_canvas.Children.Clear();
             drawTimeTicks();
@@ -627,7 +659,7 @@ namespace TimeSheet
         }
 
         //框架刻度线绘制
-        void drawTimeTicks()
+        private void drawTimeTicks()
         {
             int unitIdx = getTimeUnitIdx();
             int unitTime = timeUnits[unitIdx];
@@ -658,7 +690,7 @@ namespace TimeSheet
                         drawText(new Point(currentPixel, timeCurveBeginY - 40)
                             , (currentTime / 1000.0).ToString() + "s", Colors.White);
                         drawLine(new Point(currentPixel, timeCurveBeginY - 40),
-                            new Point(currentPixel, this.Height), Color.FromArgb((byte)(0.8*255), 255, 255, 255));
+                            new Point(currentPixel, this.Height), Color.FromArgb((byte)(0.8 * 255), 255, 255, 255));
                     }
                     else if ((int)currentTime % (int)(5 * unitTime) == 0)
                     {
@@ -682,7 +714,7 @@ namespace TimeSheet
                 drawLine(new Point(mPickStaus.dragPos.X, timeCurveBeginY - 35), new Point(mPickStaus.dragPos.X, this.Height), Colors.Red);
         }
 
-        void drawTimeLines()
+        private void drawTimeLines()
         {
             double currentPosX = timeCurveBeginX;
             double currentPosY = timeCurveBeginY;
@@ -728,19 +760,19 @@ namespace TimeSheet
         }
 
         //框选绘制,
-        void drawSelection()
+        private void drawSelection()
         {
             if (mPickStaus.mStat == pickStaus.EStat.selecting)
             {
                 drawRect(mPickStaus.pickPos, mPickStaus.dragPos,
-                        Color.FromArgb((byte)(0.2 * 255), (byte)(0.5 * 255), 0, (byte)(0.3 * 255)), true);
+                        Color.FromArgb((byte)(0.3 * 255), (byte)(0.2 * 255), (byte)(0.5 * 255), 0), true);
             }
 
         }
         #endregion
 
         #region input
-        Point initMousePos = new Point();
+        private Point initMousePos = new Point();
 
         private void onLeftMouseDown(double x, double y)
         {
@@ -795,13 +827,10 @@ namespace TimeSheet
                 evtOnMovieTime((int)pos2time(mPickStaus.dragPos.X));
             }
 
-            //EditorWindow.focusedWindow.Repaint();//TODO reapaint
-            draw();
+            repaint();
         }
 
-
-
-        public void onLeftMouseUp(double x, double y)
+        private void onLeftMouseUp(double x, double y)
         {
             for (int i = 0; i < mTimeCurves.Count; ++i)
             {
@@ -842,25 +871,24 @@ namespace TimeSheet
                             }
                         }
                     }
-                    //EditorWindow.focusedWindow.Repaint();//TODO repaint
-                    draw();
+                    repaint();
                 }
             }
             mPickStaus.TransitState(pickStaus.EAction.mouseUp);
         }
 
-        double timeCount = 0;
-        double timeLast = 0;
-        double triggerTime = 200;
-        public void onDrag(int whickKey, double dx, double dy)
+        private double timeCount = 0;
+        private double timeLast = 0;
+        private double triggerTime = 200;
+        private void onDrag(int whickKey, double dx, double dy)
         {
             if (mPickStaus.mStat == pickStaus.EStat.selecting)
             {
                 mPickStaus.dragPos = testInArea(initMousePos) ?? mPickStaus.dragPos;
-                draw();
+                repaint();
             }
 
-            Point? apos = testInArea(initMousePos) ?? new Point(0, 0);
+            Point? apos = testInArea(initMousePos) ?? initMousePos;
             if (apos == null)
             {
                 return;
@@ -904,16 +932,10 @@ namespace TimeSheet
                     mPickStaus.pickPos = apos.Value;
                 }
             }
-            draw();
+            repaint();
         }
 
-
-        private void m_canvas_MouseMove(object sender, MouseEventArgs e)
-        {
-
-        }
-
-        public void onDoubleClick(double x, double y)
+        private void onDoubleClick(double x, double y)
         {
             Point? apos = testInArea(new Point(x, y));
             if (apos == null)
@@ -923,7 +945,7 @@ namespace TimeSheet
             setKey(apos.Value);
         }
 
-        public void onScroll(double dx, double dy, double x, double y)
+        private void onScroll(double dx, double dy, double x, double y)
         {
             var apos = testInArea(new Point(x, y));
             if (apos == null) return;
@@ -941,9 +963,8 @@ namespace TimeSheet
             var px = time2pos(t);
             pixelStart -= apos.Value.X - px;
 
-            draw();
+            repaint();
         }
-        #endregion
 
         private void m_canvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -956,22 +977,12 @@ namespace TimeSheet
             var pt = e.GetPosition(m_canvas);
 
             onLeftMouseUp(pt.X, pt.Y);
-            draw();
+            repaint();
         }
-
-        //private void m_canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        //{
-
-        //}
-
-        //private void m_canvas_MouseUp(object sender, MouseButtonEventArgs e)
-        //{
-
-        //}
 
         private void m_canvas_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            Trace.WriteLine(e.OriginalSource);
+            //Trace.WriteLine(e.OriginalSource);
             initMousePos = e.GetPosition(m_canvas);
             if (e.LeftButton == MouseButtonState.Pressed)
             {
@@ -992,14 +1003,6 @@ namespace TimeSheet
             }
             e.Handled = false;
         }
-
-        //private void m_canvas_PreviewMouseUp(object sender, MouseButtonEventArgs e)
-        //{
-        //    var pt = e.GetPosition(m_canvas);
-
-        //    onLeftMouseUp(pt.X, pt.Y);
-        //    draw();
-        //}
 
         private void m_canvas_PreviewMouseMove(object sender, MouseEventArgs e)
         {
@@ -1024,13 +1027,160 @@ namespace TimeSheet
 
         private void m_canvas_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            Trace.WriteLine(e.OriginalSource);
+            //Trace.WriteLine(e.OriginalSource);
             var pt = e.GetPosition(m_canvas);
 
             onLeftMouseUp(pt.X, pt.Y);
-            draw();
+            repaint();
             e.Handled = false;
         }
+
+        private void onKeyDown(Key kc)
+        {
+            if (timeKeySelected != null)
+            {
+                if (kc == Key.Left)
+                {
+                    timeKeySelected.time = timeKeySelected.time - (float)(3.0 / time2Pixel);
+                    if (timeKeySelected.mTimeCurve != null)
+                    {
+                        timeKeySelected.mTimeCurve.sortByTime();
+                    }
+                    repaint();
+                }
+                else if (kc == Key.Right)
+                {
+                    timeKeySelected.time = timeKeySelected.time + (float)(2.0 / time2Pixel);
+                    if (timeKeySelected.mTimeCurve != null)
+                    {
+                        timeKeySelected.mTimeCurve.sortByTime();
+                    }
+                    repaint();
+                }
+                else if (kc == Key.Delete)
+                {
+                    delKey();
+                }
+            }
+
+            if (kc == Key.Insert)
+            {
+                //setKey(mPickStaus.pickPos);
+                Point? apos = testInArea(initMousePos);
+                if (apos == null)
+                {
+                    return;
+                }
+                setKey(apos.Value);
+            }
+            else if (kc == Key.PageDown)
+            {
+                if (timeCurveSelected != null && timeKeySelected != null)
+                {
+                    var keys = timeCurveSelected.getTimeKeys();
+
+                    foreach (var key in keys)
+                    {
+                        if (key.time > timeKeySelected.time)
+                        {
+                            var x = time2pos(key.time);
+                            var xmax = this.Width - timeCurveEndX;
+                            if (x > xmax)
+                            {
+                                pixelStart -= xmax - x - pickKeyPixelWidth;
+                            }
+                            timeKeySelected = key;
+                            repaint();
+                            break;
+                        }
+                    }
+                }
+                else if (timeCurveSelected != null && timeKeySelected == null)
+                {
+                    timeKeySelected = timeCurveSelected.getTimeKeys().First();
+                    var x = time2pos(timeKeySelected.time);
+                    var xmin = timeCurveBeginX;
+                    var xmax = this.Width - timeCurveEndX;
+                    if (x < xmin)
+                    {
+                        pixelStart -= xmin - x - pickKeyPixelWidth;
+                    }
+                    else if (x > xmax)
+                    {
+                        pixelStart -= xmax - x - pickKeyPixelWidth;
+                    }
+                    repaint();
+                }
+            }
+            else if (kc == Key.PageUp)
+            {
+                if (timeCurveSelected != null && timeKeySelected != null)
+                {
+                    var keys = timeCurveSelected.getTimeKeys().Reverse();
+                    foreach (var key in keys)
+                    {
+                        if (key.time < timeKeySelected.time)
+                        {
+                            timeKeySelected = key;
+                            var x = time2pos(key.time);
+                            var xmin = timeCurveBeginX;
+                            if (x < xmin)
+                            {
+                                pixelStart -= xmin - x + pickKeyPixelWidth;
+                            }
+                            repaint();
+                            break;
+                        }
+                    }
+                }
+                if (timeCurveSelected != null && timeKeySelected == null)
+                {
+                    timeKeySelected = timeCurveSelected.getTimeKeys().Last();
+                    var x = time2pos(timeKeySelected.time);
+                    var xmin = timeCurveBeginX;
+                    var xmax = this.Width - timeCurveEndX;
+                    if (x < xmin)
+                    {
+                        pixelStart -= xmin - x + pickKeyPixelWidth;
+                    }
+                    else if (x > xmax)
+                    {
+                        pixelStart -= xmax - x + pickKeyPixelWidth;
+                    }
+                    repaint();
+                }
+            }
+        }
+
+        private void window_KeyDown(object sender, KeyEventArgs e)
+        {
+            onKeyDown(e.Key);
+        }
+
+        //更新
+        private bool mReDraw = false;
+        private  void OnTimedEvent(object sender, EventArgs e)
+        {
+            if (mReDraw)
+            {
+                draw();
+                mReDraw = false;
+            }
+        }
+
+        private DispatcherTimer dispatcherTimer;
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            var window = Window.GetWindow(this);
+
+            window.KeyDown += window_KeyDown;
+            dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
+            dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            dispatcherTimer.Start();
+        }
+        #endregion
+
 
     }
 }

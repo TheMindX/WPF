@@ -29,7 +29,7 @@ namespace TimeSheet
         {
             m_timesheet.addTimeLine("abc");
             m_timesheet.addTimeLine("cde");
-            m_timesheet.draw();
+            m_timesheet.repaint();
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
