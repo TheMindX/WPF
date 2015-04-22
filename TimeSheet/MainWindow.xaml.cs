@@ -27,9 +27,12 @@ namespace TimeSheet
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            m_timesheet.reset();
-            m_timesheet.addTimeLine("abc");
-            m_timesheet.addTimeLine("cde");
+            var ts = m_animator.m_timesheet;
+            ts.reset();
+            ts.addTimeLine("abc");
+            ts.addTimeLine("cde");
+            ts.addTimeLine("cdeasdfasfd");
+            ts.addTimeLine("asdfasdfasdfasfd");
         }
 
     }

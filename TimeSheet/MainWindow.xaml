@@ -6,8 +6,8 @@
         xmlns:avalonDockLayout="clr-namespace:Xceed.Wpf.AvalonDock.Layout;assembly=Xceed.Wpf.AvalonDock"
         Title="MainWindow" Height="420" Width="684">
     <StackPanel>
-        <local:TimeSheetControl x:Name="m_timesheet" Height="298" Background="#330CFF00">
-        </local:TimeSheetControl>
+        <local:AnimationItemsCtrl x:Name="m_animator" Height="298" Background="#330CFF00">
+        </local:AnimationItemsCtrl>
         <Button Height="24" Click="Button_Click"></Button>
         <Button Height="24"></Button>
     </StackPanel>

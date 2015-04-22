@@ -60,9 +60,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AnimationItemsCtrl.xaml.cs">
+      <DependentUpon>AnimationItemsCtrl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TimeSheetControl.xaml.cs">
       <DependentUpon>TimeSheetControl.xaml</DependentUpon>
     </Compile>
+    <Page Include="AnimationItemsCtrl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

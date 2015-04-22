@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="251" d:DesignWidth="853" Background="Black" SizeChanged="UserControl_SizeChanged" >
     <Grid>
-        <Canvas x:Name="m_canvas" MouseWheel="m_canvas_MouseWheel" PreviewMouseDown="m_canvas_PreviewMouseDown" PreviewMouseMove="m_canvas_PreviewMouseMove" PreviewMouseLeftButtonUp="m_canvas_PreviewMouseLeftButtonUp" Background="#CC0017FF"/>
+        <Canvas x:Name="m_canvas" MouseWheel="m_canvas_MouseWheel" PreviewMouseDown="m_canvas_PreviewMouseDown" PreviewMouseMove="m_canvas_PreviewMouseMove" PreviewMouseLeftButtonUp="m_canvas_PreviewMouseLeftButtonUp" Background="#CC707070"/>
     </Grid>
     
 </UserControl>

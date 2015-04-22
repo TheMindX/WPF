@@ -93,10 +93,10 @@ namespace TimeSheet
 
             public class TimeKey
             {
-                public TimeCurve mTimeCurve;
-                double mTime;
+                public TimeCurve mTimeCurve = null;
+                double mTime = 0;
                 public int idx = 0;
-
+                Object mPropertyObject = null;//属性对象
                 public double time
                 {
                     get
@@ -124,6 +124,7 @@ namespace TimeSheet
         public static event System.Action<TimeCurve, TimeCurve.TimeKey> evtOnEditTimeKey;//编辑key
         public static event System.Action<TimeCurve, TimeCurve.TimeKey> evtOnRemoveTimeKey;//移除key
         public static event System.Action<int> evtOnMovieTime;//goto time位置
+        public static event System.Action<double> evtOnScroll;//发生滚动
         #endregion //event
 
         #region selectction
@@ -230,9 +231,26 @@ namespace TimeSheet
         #endregion //editkey
 
         #region config
-        public double timeCurveBeginX = 64;
-        public double timeCurveBeginY = 112;
-        public double timeCurveEndX = 8;
+        private double _scrollY = 0;//向上滚动20
+
+        public double scrollY
+        {
+            get
+            {
+                return _scrollY;
+            }
+
+            set
+            {
+                _scrollY = value;
+                if (evtOnScroll != null) evtOnScroll(_scrollY);
+                repaint();
+            }
+        }
+
+        public double timeCurveBeginX = 0;
+        public double timeCurveBeginY = 40;
+        public double timeCurveEndX = 0;
         public double timeCurveEndY = 0;
         public double timeLineItemHeight = 32;
         #endregion
@@ -507,8 +525,8 @@ namespace TimeSheet
             {
                 if (mTimeCurves[i] == tc)//确定位置
                 {
-                    double minY = timeCurveBeginY + timeLineItemHeight * i;
-                    double maxY = minY + timeLineItemHeight;
+                    double minY = timeCurveBeginY + timeLineItemHeight * i - scrollY;
+                    double maxY = minY + timeLineItemHeight - scrollY;
 
                     if (minY > bottom) return false;
                     if (maxY < top) return false;
@@ -610,6 +628,7 @@ namespace TimeSheet
                 goto ret;
             }
             mPickStaus.pickPos = pos;
+            pos = new Point(pos.X, pos.Y + scrollY);
 
             int tlIdx = (int)((pos.Y - timeCurveBeginY) / timeLineItemHeight);
             if (tlIdx < 0 || tlIdx >= mTimeCurves.Count)
@@ -663,6 +682,7 @@ namespace TimeSheet
         //框架刻度线绘制
         private void drawTimeTicks()
         {
+            //渐变条
             int unitIdx = getTimeUnitIdx();
             int unitTime = timeUnits[unitIdx];
 
@@ -675,12 +695,11 @@ namespace TimeSheet
 
             int currentTime = startTime;
             double currentPixel = detPixel;
-            //EditorUtils.drawRect(new Point(timeLineBeginX, timeLineBeginY), new Point(this.ActualWidth - timeLineEndX, this.Height), new Rect(), Color.FromArgb(0.2f, 0.2f, 0.2f, 1), false);
-
+            
             //绘制边框...
             drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 20), new Point(this.ActualWidth - timeCurveEndX, timeCurveBeginY), Color.FromArgb(255, (byte)(0.1 * 255), (byte)(0.1 * 255), (byte)(0.1 * 255)));
             drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 40), new Point(this.ActualWidth - timeCurveEndX, timeCurveBeginY), Color.FromArgb(255, (byte)(0.4 * 255), (byte)(0.4 * 255), (byte)(0.4 * 255)), false);
-            drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 20), new Point(this.ActualWidth - timeCurveEndX, this.Height), Color.FromArgb(255, (byte)(0.4 * 255), (byte)(0.4 * 255), (byte)(0.4 * 255)), false);
+            drawRect(new Point(timeCurveBeginX, timeCurveBeginY - 20), new Point(this.ActualWidth - timeCurveEndX, this.ActualHeight), Color.FromArgb(255, (byte)(0.4 * 255), (byte)(0.4 * 255), (byte)(0.4 * 255)), false);
 
             //绘制刻度线....
             while (currentPixel < this.ActualWidth - timeCurveEndX)
@@ -692,19 +711,19 @@ namespace TimeSheet
                         drawText(new Point(currentPixel, timeCurveBeginY - 40)
                             , (currentTime / 1000.0).ToString() + "s", Colors.White);
                         drawLine(new Point(currentPixel, timeCurveBeginY - 40),
-                            new Point(currentPixel, this.Height), Color.FromArgb((byte)(0.8 * 255), 255, 255, 255));
+                            new Point(currentPixel, this.ActualHeight), Color.FromArgb((byte)(0.8 * 255), 255, 255, 255));
                     }
                     else if ((int)currentTime % (int)(5 * unitTime) == 0)
                     {
                         drawText(new Point(currentPixel, timeCurveBeginY - 35),
                             (currentTime / 1000.0).ToString() + "s", Colors.White);
                         drawLine(new Point(currentPixel, timeCurveBeginY - 35),
-                            new Point(currentPixel, this.Height), Color.FromArgb((byte)(0.6 * 255), 255, 255, 255));
+                            new Point(currentPixel, this.ActualHeight), Color.FromArgb((byte)(0.6 * 255), 255, 255, 255));
                     }
                     else
                     {
                         drawLine(new Point(currentPixel, timeCurveBeginY - 25),
-                            new Point(currentPixel, this.Height), Color.FromArgb((byte)(0.2 * 255), 255, 255, 255));
+                            new Point(currentPixel, this.ActualHeight), Color.FromArgb((byte)(0.2 * 255), 255, 255, 255));
                     }
                 }
                 currentTime += unitTime;
@@ -713,13 +732,14 @@ namespace TimeSheet
             //绘制
             //如果是在拖矩形状态， //
             if (isInTimeSheet(new Point(mPickStaus.dragPos.X, timeCurveBeginY + 1)))
-                drawLine(new Point(mPickStaus.dragPos.X, timeCurveBeginY - 35), new Point(mPickStaus.dragPos.X, this.Height), Colors.Red);
+                drawLine(new Point(mPickStaus.dragPos.X, timeCurveBeginY - 35), new Point(mPickStaus.dragPos.X, this.ActualHeight), Colors.Red);
         }
 
+        //绘制时间条
         private void drawTimeLines()
         {
             double currentPosX = timeCurveBeginX;
-            double currentPosY = timeCurveBeginY;
+            double currentPosY = timeCurveBeginY - scrollY;
 
             for (int i = 0; i < mTimeCurves.Count; ++i)
             {
@@ -974,13 +994,6 @@ namespace TimeSheet
             onScroll(0, e.Delta, pos.X, pos.Y);
         }
 
-        private void m_canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            var pt = e.GetPosition(m_canvas);
-
-            onLeftMouseUp(pt.X, pt.Y);
-            repaint();
-        }
 
         private void m_canvas_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -1034,7 +1047,7 @@ namespace TimeSheet
 
             onLeftMouseUp(pt.X, pt.Y);
             repaint();
-            e.Handled = false;
+            e.Handled = true;
         }
 
         private void onKeyDown(Key kc)
@@ -1064,8 +1077,16 @@ namespace TimeSheet
                     delKey();
                 }
             }
-
-            if (kc == Key.Insert)
+            
+            if (kc == Key.Up)
+            {
+                scrollY += timeLineItemHeight;
+            }
+            else if (kc == Key.Down)
+            {
+                scrollY -= timeLineItemHeight;
+            }
+            else if (kc == Key.Insert)
             {
                 //setKey(mPickStaus.pickPos);
                 Point? apos = testInArea(initMousePos);
@@ -1177,7 +1198,5 @@ namespace TimeSheet
         {
             repaint();
         }
-
-
     }
 }
