@@ -6,14 +6,19 @@
              xmlns:local="clr-namespace:TimeSheet"
              mc:Ignorable="d" 
              d:DesignHeight="319" d:DesignWidth="898">
+    <UserControl.Resources>
+        <Style x:Key="icons">
+            <Setter Property="TextElement.FontFamily" Value="/TimeSheet;component/Resources/#icons"/>
+        </Style>
+    </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.5*"/>
+            <ColumnDefinition Width="400"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
-        <DockPanel Grid.Column="0" Background="#FFF7B8B8">
-            <Grid Height="20" VerticalAlignment="Top" DockPanel.Dock="Top">
+        <DockPanel Grid.Column="0" Background="#FF343434">
+            <Grid Height="20" VerticalAlignment="Top" DockPanel.Dock="Top" Background="#FF1D1D1D">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40"/>
                     <!--play/stop/resume reset/-->
@@ -26,37 +31,55 @@
                     <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="40"/>
                 </Grid.ColumnDefinitions>
-
-                <Button Grid.Column="6" Content="+"/>
-                <Button Grid.Column="7" Content="-"/>
-
             </Grid>
             <Grid Height="20" VerticalAlignment="Top" DockPanel.Dock="Top">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="40"/><!--play/stop/resume reset/-->
                     <ColumnDefinition Width="40"/>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="40"/><!--pgup3, pgdown4 goto5 addkey6 addtrigger7-->
+                    <!--play/stop/resume reset/-->
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="40"/>
+                    <!--pgup3, pgdown4 goto5 addkey6 addtrigger7-->
                     <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="40"/>
                 </Grid.ColumnDefinitions>
-                <Rectangle Fill="#FFC36363" Grid.ColumnSpan="5"></Rectangle>
+                <Rectangle Fill="#FF161616" Grid.ColumnSpan="8" Stroke="Black"></Rectangle>
 
-                <Button Grid.Column="0" Content="play"></Button>
-                <Button Grid.Column="1" Content="reset"/>
+                <Button Grid.Column="0" Content="播" Style="{DynamicResource icons}" FontSize="14"></Button>
+                <Button Grid.Column="1" Content="停" Style="{DynamicResource icons}" FontSize="14"/>
 
-                <Button Grid.Column="3" Content="pre"/>
-                <Button Grid.Column="4" Content="next"/>
-                <TextBox Grid.Column="5"></TextBox>
-                <Button Grid.Column="6" Content="+key"/>
-                <Button Grid.Column="7" Content="+trig"/>
-                
+
+                <Button Grid.Column="2" Content="前" Style="{DynamicResource icons}" FontSize="14"/>
+                <Button Grid.Column="3" Content="后" Style="{DynamicResource icons}" FontSize="14"/>
+                <TextBox Grid.Column="4" Foreground="White" Background="#FF343434"/>
+                <Button Grid.Column="6" Content="增" Style="{DynamicResource icons}" Click="Button_Click" FontSize="14"/>
+                <Button Grid.Column="7" Content="减" Style="{DynamicResource icons}" FontSize="14"/>
             </Grid>
             
+            
+            
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock x:Name="m_object_name" FontSize="24" Text="head" HorizontalAlignment="Center" FontStyle="Italic" Margin="0,5,0,15" Foreground="White"/>
+                    <StackPanel x:Name="m_propertys">
+                    </StackPanel>
+                </StackPanel>
+                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3" Background="#FF7F7F7F">
+                </GridSplitter>
+                <ScrollViewer Grid.Column="2" x:Name="m_scroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="m_objects">
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
         </DockPanel>
-        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="5"></GridSplitter>
+        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3" Background="#FF7F7F7F"></GridSplitter>
         <local:TimeSheetControl x:Name="m_timesheet" Grid.Column="2"></local:TimeSheetControl>
     </Grid>
 </UserControl>

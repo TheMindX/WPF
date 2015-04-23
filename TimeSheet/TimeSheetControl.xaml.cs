@@ -39,7 +39,8 @@ namespace TimeSheet
             public string name;
             public Color color;
 
-            List<TimeKey> timeKeys = new List<TimeKey>();
+            public Object attackObject = null;
+            private List<TimeKey> timeKeys = new List<TimeKey>();
 
             public IEnumerable<TimeKey> getTimeKeys()
             {
@@ -96,7 +97,7 @@ namespace TimeSheet
                 public TimeCurve mTimeCurve = null;
                 double mTime = 0;
                 public int idx = 0;
-                Object mPropertyObject = null;//属性对象
+                public Object attachProperty = null;//属性对象
                 public double time
                 {
                     get
@@ -174,6 +175,14 @@ namespace TimeSheet
             {
                 mPickStaus.pickPos = new Point(time2pos(value), mPickStaus.pickPos.Y);
                 repaint();
+            }
+        }
+
+        public IEnumerable<TimeCurve> timeCurves
+        {
+            get
+            {
+                return mTimeCurves;
             }
         }
         #endregion //selection
@@ -846,7 +855,10 @@ namespace TimeSheet
 
             if (Keyboard.IsKeyDown(Key.LeftShift))
             {
-                evtOnMovieTime((int)pos2time(mPickStaus.dragPos.X));
+                if (evtOnMovieTime != null)
+                {
+                    evtOnMovieTime((int)pos2time(mPickStaus.dragPos.X));
+                }
             }
 
             repaint();

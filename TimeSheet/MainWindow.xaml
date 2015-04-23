@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:TimeSheet"
         xmlns:avalonDock="clr-namespace:Xceed.Wpf.AvalonDock;assembly=Xceed.Wpf.AvalonDock"
         xmlns:avalonDockLayout="clr-namespace:Xceed.Wpf.AvalonDock.Layout;assembly=Xceed.Wpf.AvalonDock"
-        Title="MainWindow" Height="420" Width="684">
+        Title="MainWindow" Height="420" Width="890">
     <StackPanel>
         <local:AnimationItemsCtrl x:Name="m_animator" Height="298" Background="#330CFF00">
         </local:AnimationItemsCtrl>

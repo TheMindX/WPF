@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="TimeSheet.AnimationtItem"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="32" d:DesignWidth="300">
+    <UserControl.Resources>
+        <Style x:Key="icons">
+            <Setter Property="TextElement.FontFamily" Value="/TimeSheet;component/Resources/#icons"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Height="32" Margin="5,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="32"></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition Width="32"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Border x:Name="m_background" BorderBrush="#FF91FF8C" CornerRadius="5" Background="#FF8B8B8B" Grid.ColumnSpan="3" Margin="0,2" IsEnabled="False"></Border>
+        <TextBlock x:Name="m_icon" Text="置" Grid.Column="0" Style="{DynamicResource icons}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FFE08B35" IsEnabled="False"/>
+        <TextBlock x:Name="m_text" Foreground="White" HorizontalAlignment="Left" FontSize="18" Grid.Column="1" Margin="22,0,0,0" VerticalAlignment="Center" IsEnabled="False">TypeName</TextBlock>
+        <Button x:Name="m_choosen_button" Grid.ColumnSpan="3" Margin="0,2" Background="#05000000" BorderBrush="{x:Null}" Foreground="{x:Null}"></Button>
+        <Button x:Name="m_hide_button" Content="置" Grid.Column="2" Style="{DynamicResource icons}" FontSize="20" Foreground="#FF424242" Margin="0,2" BorderBrush="{x:Null}" Background="{x:Null}"/>
+    </Grid>
+</UserControl>

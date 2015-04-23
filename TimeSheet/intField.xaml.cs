@@ -16,20 +16,13 @@ using System.Windows.Shapes;
 namespace TimeSheet
 {
     /// <summary>
-    /// MainWindow.xaml 的交互逻辑
+    /// intField.xaml 的交互逻辑
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class intField : UserControl
     {
-        public MainWindow()
+        public intField()
         {
             InitializeComponent();
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            //TestTimeSheet.testOfTimeSheet();
-            TestRegAnimation.tesstOfRegAnimObject();
-        }
-
     }
 }
