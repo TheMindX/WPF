@@ -25,7 +25,23 @@ namespace TimeSheet
         public virtual string getName() { return null; }
         public virtual string getIcon() { return null; }
 
-        TimeSheetControl.TimeCurve mCurve = null;
+        public TimeSheetControl.TimeCurve mCurve = null;
+        private AnimationtItem _mUI = null;
+        public AnimationtItem mUI
+        {
+            get
+            {   
+                return _mUI;
+            }
+        }
+
+        public void resetUI()
+        {
+            _mUI = new AnimationtItem();
+            (_mUI as AnimationtItem).Background = new SolidColorBrush(Colors.Black);
+            _mUI.name = getName();
+            _mUI.icon = getIcon();
+        }
 
         public virtual AnimationProperty createProperty()
         {
@@ -128,7 +144,7 @@ namespace TimeSheet
             draw();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void BtnAddAnimation(object sender, RoutedEventArgs e)
         {
             //弹出右键菜单
             mContextMenu = new ContextMenu();
@@ -254,17 +270,109 @@ namespace TimeSheet
                 editProperty.drawUI(m_propertys);
             }
 
+            int idx = 0;
             //draw object list
             foreach(var curve in m_timesheet.timeCurves)
             {
-                var uiItem = new AnimationtItem();
-                var item = curve.attackObject as AnimationObject;
-                uiItem.name = item.getName();
-                uiItem.icon = item.getIcon();
-                m_objects.Children.Add(uiItem);
+                var tmpCurve = curve;//for closure use
+                var ao = curve.attackObject as AnimationObject;
+                ao.resetUI();
+                m_objects.Children.Add(ao.mUI);
+                ao.mUI.m_choosen_button.Click += delegate(object sender, RoutedEventArgs e)
+                    {
+                        var ao1 = m_timesheet.timeCurveSelected.attackObject as AnimationObject;
+                        ao1.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.Black);
+                        m_timesheet.timeCurveSelected = tmpCurve;
+                        ao1 = m_timesheet.timeCurveSelected.attackObject as AnimationObject;
+                        ao1.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.YellowGreen);
+                        m_timesheet.repaint();
+                    };
             }
 
             m_timesheet.repaint();
         }
+
+        private void onPlaying(bool pause, double t)
+        {
+            if(pause)
+            {
+                if ((string)m_play.Content != "播")
+                    m_play.Content = "播";
+            }
+            else
+            {
+                if ((string)m_play.Content != "暂")
+                    m_play.Content = "暂";
+            }
+            Console.WriteLine("onTime: " + t);
+        }
+
+        private void BtnOnPlay(object sender, RoutedEventArgs e)
+        {
+            //TimeSheetControl.evtOnPlaying -= onPlaying;
+            //TimeSheetControl.evtOnPlaying += onPlaying;
+            if (m_timesheet.m_stopwatch.isPause())
+                m_timesheet.timePlay();
+            else
+                m_timesheet.timePause();
+        }
+
+        private void BtnRemoveAnimation(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void m_reset_Click(object sender, RoutedEventArgs e)
+        {
+            m_timesheet.timeReset();
+        }
+
+        private void m_nextkey_Click(object sender, RoutedEventArgs e)
+        {
+            m_timesheet.selectNextKey();
+        }
+
+        private void m_prekey_Click(object sender, RoutedEventArgs e)
+        {
+            m_timesheet.selectPreviewKey();
+        }
+
+        private void m_scroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            m_timesheet.scrollY = e.VerticalOffset;
+            m_timesheet.repaint();
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            TimeSheetControl.evtOnPlaying += onPlaying;
+            TimeSheetControl.evtOnPickTime += t =>
+                {
+                    m_time_box.Text = t.ToString();
+                };
+
+            TimeSheetControl.evtOnSelectChanged += delegate(TimeSheetControl.TimeCurve oc, TimeSheetControl.TimeCurve.TimeKey ok, 
+                TimeSheetControl.TimeCurve nc, TimeSheetControl.TimeCurve.TimeKey nk)
+            {
+                if(nc != oc)
+                {
+                    if (oc != null)
+                    {
+                        var ao = (oc.attackObject as AnimationObject);
+                        if (ao == null) return;
+                        if (ao.mUI == null) return;
+                        ao.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.Black);
+                    }
+                    if(nc != null)
+                    {
+                        var ao = (nc.attackObject as AnimationObject);
+                        if (ao == null) return;
+                        if (ao.mUI == null) return;
+                        ao.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.YellowGreen);
+                    }
+                }
+            };
+        }
+
     }
 }

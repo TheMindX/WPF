@@ -20,6 +20,7 @@ namespace TimeSheet
     /// </summary>
     public partial class AnimationtItem : UserControl
     {
+        public int idx = 0;
         public AnimationtItem()
         {
             InitializeComponent();

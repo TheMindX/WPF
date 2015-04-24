@@ -63,14 +63,15 @@
     <Compile Include="AnimationItemsCtrl.xaml.cs">
       <DependentUpon>AnimationItemsCtrl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="AnimationTest.cs" />
+    <Compile Include="TestTimePlaying.cs" />
+    <Compile Include="TestTimeSheet.cs" />
     <Compile Include="intField.xaml.cs">
       <DependentUpon>intField.xaml</DependentUpon>
     </Compile>
     <Compile Include="intSlider.xaml.cs">
       <DependentUpon>intSlider.xaml</DependentUpon>
     </Compile>
-    <Compile Include="RegAnimationTest.cs" />
+    <Compile Include="TestRegAnimation.cs" />
     <Compile Include="stringField.xaml.cs">
       <DependentUpon>stringField.xaml</DependentUpon>
     </Compile>

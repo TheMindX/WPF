@@ -124,10 +124,34 @@ namespace TimeSheet
         public static event System.Action<TimeCurve, TimeCurve.TimeKey> evtOnAddTimeKey;//添加key
         public static event System.Action<TimeCurve, TimeCurve.TimeKey> evtOnEditTimeKey;//编辑key
         public static event System.Action<TimeCurve, TimeCurve.TimeKey> evtOnRemoveTimeKey;//移除key
-        public static event System.Action<int> evtOnMovieTime;//goto time位置
+        public static event System.Action<double> evtOnMovieTime;//goto time位置
+        public static event System.Action<double> evtOnPickTime;//选择时间
         public static event System.Action<double> evtOnScroll;//发生滚动
+        public static event System.Action<bool, double> evtOnPlaying;//播放/停止，时间
         #endregion //event
 
+        #region play
+        public StopWatch m_stopwatch = new StopWatch();
+
+        public void timePlay()
+        {
+            m_stopwatch.play();
+        }
+        public void timePause()
+        {
+            m_stopwatch.pause();
+            repaint();
+        }
+        public void timeReset()
+        {
+            m_stopwatch.reset();
+            timePick = 0;
+            repaint();
+        }
+
+        //TODO betweenkey(oldk, k1, k2, timeVal),
+        //TODO, sample play
+        #endregion
         #region selectction
         public TimeCurve timeCurveSelected
         {
@@ -169,11 +193,12 @@ namespace TimeSheet
         {
             get
             {
-                return pos2time(mPickStaus.pickPos.X);
+                return pos2time(mPickStaus.dragPos.X);
             }
             set
             {
                 mPickStaus.pickPos = new Point(time2pos(value), mPickStaus.pickPos.Y);
+                mPickStaus.dragPos = mPickStaus.pickPos;
                 repaint();
             }
         }
@@ -183,6 +208,90 @@ namespace TimeSheet
             get
             {
                 return mTimeCurves;
+            }
+        }
+
+
+        public void selectNextKey()
+        {
+            if (timeCurveSelected != null && timeKeySelected != null)
+            {
+                var keys = timeCurveSelected.getTimeKeys();
+
+                foreach (var key in keys)
+                {
+                    if (key.time > timeKeySelected.time)
+                    {
+                        var x = time2pos(key.time);
+                        var xmax = this.ActualWidth - timeCurveEndX;
+                        if (x > xmax)
+                        {
+                            pixelStart -= xmax - x - pickKeyPixelWidth;
+                        }
+                        timeKeySelected = key;
+                        repaint();
+                        break;
+                    }
+                }
+            }
+            else if (timeCurveSelected != null && timeKeySelected == null)
+            {
+                var keys = timeCurveSelected.getTimeKeys().ToArray();
+                if (keys.Count() == 0) return;
+                timeKeySelected = keys.First();
+                var x = time2pos(timeKeySelected.time);
+                var xmin = timeCurveBeginX;
+                var xmax = this.ActualWidth - timeCurveEndX;
+                if (x < xmin)
+                {
+                    pixelStart -= xmin - x - pickKeyPixelWidth;
+                }
+                else if (x > xmax)
+                {
+                    pixelStart -= xmax - x - pickKeyPixelWidth;
+                }
+                repaint();
+            }
+        }
+
+        public void selectPreviewKey()
+        {
+            if (timeCurveSelected != null && timeKeySelected != null)
+            {
+                var keys = timeCurveSelected.getTimeKeys().Reverse();
+                foreach (var key in keys)
+                {
+                    if (key.time < timeKeySelected.time)
+                    {
+                        timeKeySelected = key;
+                        var x = time2pos(key.time);
+                        var xmin = timeCurveBeginX;
+                        if (x < xmin)
+                        {
+                            pixelStart -= xmin - x + pickKeyPixelWidth;
+                        }
+                        repaint();
+                        break;
+                    }
+                }
+            }
+            if (timeCurveSelected != null && timeKeySelected == null)
+            {
+                var keys = timeCurveSelected.getTimeKeys().ToArray();
+                if (keys.Count() == 0) return;
+                timeKeySelected = keys.Last();
+                var x = time2pos(timeKeySelected.time);
+                var xmin = timeCurveBeginX;
+                var xmax = this.ActualWidth - timeCurveEndX;
+                if (x < xmin)
+                {
+                    pixelStart -= xmin - x + pickKeyPixelWidth;
+                }
+                else if (x > xmax)
+                {
+                    pixelStart -= xmax - x + pickKeyPixelWidth;
+                }
+                repaint();
             }
         }
         #endregion //selection
@@ -486,10 +595,17 @@ namespace TimeSheet
                 }
             }
 
+            Point _dragPos = new Point();
             public Point dragPos
             {
-                get;
-                set;
+                get
+                {
+                    return _dragPos;
+                }
+                set
+                {
+                    _dragPos = value;
+                }
             }
         }
         private pickStaus mPickStaus = null;
@@ -626,6 +742,7 @@ namespace TimeSheet
 
         private List<TimeCurve> mTimeCurves = new List<TimeCurve>();//key frame source
 
+        private double mPickTime = 0;
         //这里得到点选数据, 设置mCurrentPickPos
         private bool pickTimeRecord(Point pos, out TimeCurve tcurve, out TimeCurve.TimeKey tkey)
         {
@@ -636,6 +753,7 @@ namespace TimeSheet
                 tkey = null;
                 goto ret;
             }
+            mPickTime = pos2time(pos.X);
             mPickStaus.pickPos = pos;
             pos = new Point(pos.X, pos.Y + scrollY);
 
@@ -648,11 +766,10 @@ namespace TimeSheet
             }
             tcurve = mTimeCurves[tlIdx];
 
-            double t = pos2time(pos.X);
             var keys = tcurve.getTimeKeys();
             foreach (var ki in keys)
             {
-                if (Math.Abs(ki.time - t) < 10 / time2Pixel)
+                if (Math.Abs(ki.time - mPickTime) < 10 / time2Pixel)
                 {
                     tkey = ki;
                     res = true;
@@ -686,6 +803,7 @@ namespace TimeSheet
             drawTimeTicks();
             drawTimeLines();
             drawSelection();
+            //this.UpdateLayout();
         }
 
         //框架刻度线绘制
@@ -864,12 +982,13 @@ namespace TimeSheet
                 }
                 mPickStaus.TransitState(pickStaus.EAction.mouseDownNoPicked);
             }
+            if (evtOnPickTime != null) evtOnPickTime(mPickTime/1000);
 
             if (Keyboard.IsKeyDown(Key.LeftShift))
             {
                 if (evtOnMovieTime != null)
                 {
-                    evtOnMovieTime((int)pos2time(mPickStaus.dragPos.X));
+                    evtOnMovieTime(((double)pos2time(mPickStaus.dragPos.X))/1000.0);
                 }
             }
 
@@ -949,7 +1068,7 @@ namespace TimeSheet
                 {
                     if (evtOnMovieTime != null)
                     {
-                        evtOnMovieTime((int)pos2time(mPickStaus.dragPos.X));
+                        evtOnMovieTime(((double)pos2time(mPickStaus.dragPos.X)) / 1000.0);
                     }
                 }
             }
@@ -1122,80 +1241,11 @@ namespace TimeSheet
             }
             else if (kc == Key.PageDown)
             {
-                if (timeCurveSelected != null && timeKeySelected != null)
-                {
-                    var keys = timeCurveSelected.getTimeKeys();
-
-                    foreach (var key in keys)
-                    {
-                        if (key.time > timeKeySelected.time)
-                        {
-                            var x = time2pos(key.time);
-                            var xmax = this.ActualWidth - timeCurveEndX;
-                            if (x > xmax)
-                            {
-                                pixelStart -= xmax - x - pickKeyPixelWidth;
-                            }
-                            timeKeySelected = key;
-                            repaint();
-                            break;
-                        }
-                    }
-                }
-                else if (timeCurveSelected != null && timeKeySelected == null)
-                {
-                    timeKeySelected = timeCurveSelected.getTimeKeys().First();
-                    var x = time2pos(timeKeySelected.time);
-                    var xmin = timeCurveBeginX;
-                    var xmax = this.ActualWidth - timeCurveEndX;
-                    if (x < xmin)
-                    {
-                        pixelStart -= xmin - x - pickKeyPixelWidth;
-                    }
-                    else if (x > xmax)
-                    {
-                        pixelStart -= xmax - x - pickKeyPixelWidth;
-                    }
-                    repaint();
-                }
+                selectNextKey();
             }
             else if (kc == Key.PageUp)
             {
-                if (timeCurveSelected != null && timeKeySelected != null)
-                {
-                    var keys = timeCurveSelected.getTimeKeys().Reverse();
-                    foreach (var key in keys)
-                    {
-                        if (key.time < timeKeySelected.time)
-                        {
-                            timeKeySelected = key;
-                            var x = time2pos(key.time);
-                            var xmin = timeCurveBeginX;
-                            if (x < xmin)
-                            {
-                                pixelStart -= xmin - x + pickKeyPixelWidth;
-                            }
-                            repaint();
-                            break;
-                        }
-                    }
-                }
-                if (timeCurveSelected != null && timeKeySelected == null)
-                {
-                    timeKeySelected = timeCurveSelected.getTimeKeys().Last();
-                    var x = time2pos(timeKeySelected.time);
-                    var xmin = timeCurveBeginX;
-                    var xmax = this.ActualWidth - timeCurveEndX;
-                    if (x < xmin)
-                    {
-                        pixelStart -= xmin - x + pickKeyPixelWidth;
-                    }
-                    else if (x > xmax)
-                    {
-                        pixelStart -= xmax - x + pickKeyPixelWidth;
-                    }
-                    repaint();
-                }
+                selectPreviewKey();
             }
         }
 
@@ -1208,10 +1258,86 @@ namespace TimeSheet
         private bool mReDraw = false;
         private  void OnTimedEvent(object sender, EventArgs e)
         {
+            m_stopwatch.update();
+            if(!m_stopwatch.isPause() )
+            {
+                mReDraw = true;
+                timePick = m_stopwatch.nowTime()*1000;
+            }
+
             if (mReDraw)
             {   
                 draw();
                 mReDraw = false;
+            }
+        }
+
+
+        class TimerProvide
+        {
+            uint mTime;//1 ms
+            public void updateTimer()
+            {
+                var tmp = (uint)(System.DateTime.Now.Ticks / 10000 << 4 >> 4);
+                if (tmp > mTime)
+                    mTime = tmp;
+            }
+
+            public uint nowTimer()
+            {
+                return mTime;
+            }
+
+            public static TimerProvide ins = new TimerProvide();
+        };
+
+        public class StopWatch
+        {
+            private uint mTimeCount = 0;
+            private uint mLastTick = 0;
+
+            private bool bPause = true;
+
+            public void play()
+            {
+                TimerProvide.ins.updateTimer();
+                mLastTick = TimerProvide.ins.nowTimer();
+                //Trace.WriteLine("pause:" + mLastTick + ", " + mTimeCount);
+                bPause = false;
+            }
+
+            public void pause()
+            {
+                bPause = true;
+                //Trace.WriteLine("pause:" + mLastTick + ", " + mTimeCount);
+                if (evtOnPlaying != null) evtOnPlaying(true, ((double)mTimeCount) / 1000.0);
+            }
+
+            public void reset()
+            {
+                mTimeCount = 0;
+                bPause = true;
+                if (evtOnPlaying != null) evtOnPlaying(true, ((double)mTimeCount)/1000.0);
+            }
+
+            public void update()
+            {
+                if (bPause) return;
+                TimerProvide.ins.updateTimer();
+                var now = TimerProvide.ins.nowTimer();
+                mTimeCount += now - mLastTick;
+                mLastTick = now;
+                if (evtOnPlaying != null) evtOnPlaying(false, ((double)mTimeCount) / 1000.0);
+            }
+
+            public double nowTime()
+            {
+                return  ((double)mTimeCount) / 1000.0;
+            }
+
+            public bool isPause()
+            {
+                return bPause;
             }
         }
 
@@ -1222,5 +1348,7 @@ namespace TimeSheet
         {
             repaint();
         }
+
+        
     }
 }

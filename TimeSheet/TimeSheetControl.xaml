@@ -4,9 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="251" d:DesignWidth="890" Background="Black" SizeChanged="UserControl_SizeChanged" >
+             d:DesignHeight="251" d:DesignWidth="890" Background="Black" SizeChanged="UserControl_SizeChanged" 
+             ClipToBounds="True">
     <Grid>
-        <Canvas x:Name="m_canvas" MouseWheel="m_canvas_MouseWheel" PreviewMouseDown="m_canvas_PreviewMouseDown" PreviewMouseMove="m_canvas_PreviewMouseMove" PreviewMouseLeftButtonUp="m_canvas_PreviewMouseLeftButtonUp" Background="#CC343434"/>
+        <Canvas x:Name="m_canvas" MouseWheel="m_canvas_MouseWheel" PreviewMouseDown="m_canvas_PreviewMouseDown" PreviewMouseMove="m_canvas_PreviewMouseMove" PreviewMouseLeftButtonUp="m_canvas_PreviewMouseLeftButtonUp" Background="#01000000"/>
     </Grid>
     
 </UserControl>
