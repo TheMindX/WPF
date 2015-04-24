@@ -807,6 +807,18 @@ namespace TimeSheet
 
         private void onLeftMouseDown(double x, double y)
         {
+            //how to lost focus and get focus
+            //http://stackoverflow.com/questions/2914495/wpf-how-to-programmatically-remove-focus-from-a-textbox
+            //var ui = FocusManager.GetFocusedElement(Window.GetWindow(this));
+            //Keyboard.ClearFocus();
+            FrameworkElement parent = (FrameworkElement) m_canvas.Parent;
+            while (parent != null && parent is IInputElement && !((IInputElement)parent).Focusable)
+            {
+                parent = (FrameworkElement)parent.Parent;
+            }
+            DependencyObject scope = FocusManager.GetFocusScope(m_canvas);
+            FocusManager.SetFocusedElement(scope, parent as IInputElement);
+            
             Point? apos = testInArea(new Point(x, y));
             if (apos == null)
             {
@@ -820,7 +832,7 @@ namespace TimeSheet
             if (picked)
             {
                 if (mPickStaus.getAllPicked().ToArray().Contains(tkey))
-                {
+                {   
                     mPickStaus.TransitState(pickStaus.EAction.mouseDownPicked);
                 }
                 else

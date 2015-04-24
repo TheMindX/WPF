@@ -17,26 +17,26 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
-        <DockPanel Grid.Column="0" Background="#FF343434">
-            <Grid Height="20" VerticalAlignment="Top" DockPanel.Dock="Top" Background="#FF1D1D1D">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="40"/>
-                    <!--play/stop/resume reset/-->
-                    <ColumnDefinition Width="40"/>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="40"/>
-                    <!--pgup3, pgdown4 goto5 addkey6 addtrigger7-->
-                    <ColumnDefinition Width="40"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="40"/>
-                    <ColumnDefinition Width="40"/>
-                </Grid.ColumnDefinitions>
-            </Grid>
+        <DockPanel Grid.Column="0">
             <Grid Height="20" VerticalAlignment="Top" DockPanel.Dock="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40"/>
                     <!--play/stop/resume reset/-->
                     <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="40"/>
+                    <!--pgup3, pgdown4 goto5 addkey6 addtrigger7-->
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="40"/>
+                </Grid.ColumnDefinitions>
+            </Grid>
+            <Grid Height="20" VerticalAlignment="Top" DockPanel.Dock="Top" Margin="0,0,5,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40"/>
+                    <!--play/stop/resume reset/-->
+                    <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="40"/>
                     <!--pgup3, pgdown4 goto5 addkey6 addtrigger7-->
                     <ColumnDefinition Width="40"/>
@@ -45,22 +45,20 @@
                     <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="40"/>
                 </Grid.ColumnDefinitions>
-                <Rectangle Fill="#FF161616" Grid.ColumnSpan="8" Stroke="Black"></Rectangle>
+                <Rectangle Grid.ColumnSpan="8" Stroke="Black"/>
 
-                <Button Grid.Column="0" Content="播" Style="{DynamicResource icons}" FontSize="14"></Button>
-                <Button Grid.Column="1" Content="停" Style="{DynamicResource icons}" FontSize="14"/>
+                <Button Grid.Column="0" Content="播" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" FontSize="14"></Button>
+                <Button Grid.Column="1" Content="停" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" FontSize="14"/>
 
 
-                <Button Grid.Column="2" Content="前" Style="{DynamicResource icons}" FontSize="14"/>
-                <Button Grid.Column="3" Content="后" Style="{DynamicResource icons}" FontSize="14"/>
-                <TextBox Grid.Column="4" Foreground="White" Background="#FF343434"/>
-                <Button Grid.Column="6" Content="增" Style="{DynamicResource icons}" Click="Button_Click" FontSize="14"/>
-                <Button Grid.Column="7" Content="减" Style="{DynamicResource icons}" FontSize="14"/>
+                <Button Grid.Column="2" Content="前" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" FontSize="14"/>
+                <Button Grid.Column="3" Content="后" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" FontSize="14"/>
+                <TextBox Grid.Column="4" FontSize="16"/>
+                <Button Grid.Column="6" Content="加" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" Click="Button_Click" FontSize="14"/>
+                <Button Grid.Column="7" Content="减" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" FontSize="14"/>
             </Grid>
             
-            
-            
-            <Grid>
+            <Grid Background="#FF2D2D2D">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="220"/>
                     <ColumnDefinition Width="Auto"/>
@@ -71,7 +69,7 @@
                     <StackPanel x:Name="m_propertys">
                     </StackPanel>
                 </StackPanel>
-                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3" Background="#FF7F7F7F">
+                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3">
                 </GridSplitter>
                 <ScrollViewer Grid.Column="2" x:Name="m_scroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <StackPanel x:Name="m_objects">
@@ -79,7 +77,7 @@
                 </ScrollViewer>
             </Grid>
         </DockPanel>
-        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3" Background="#FF7F7F7F"></GridSplitter>
+        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3"></GridSplitter>
         <local:TimeSheetControl x:Name="m_timesheet" Grid.Column="2"></local:TimeSheetControl>
     </Grid>
 </UserControl>

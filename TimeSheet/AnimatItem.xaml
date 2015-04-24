@@ -16,10 +16,12 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition Width="32"></ColumnDefinition>
         </Grid.ColumnDefinitions>
+        
         <Border x:Name="m_background" BorderBrush="#FF91FF8C" CornerRadius="5" Background="#FF8B8B8B" Grid.ColumnSpan="3" Margin="0,2" IsEnabled="False"></Border>
+        <Button x:Name="m_choosen_button" Grid.ColumnSpan="3" Margin="0,2" Background="#05000000" BorderBrush="{x:Null}" Foreground="{x:Null}" >
+            <TextBlock x:Name="m_text" Foreground="#FFFDFDFD" FontSize="18" Grid.Column="1" Margin="0,0,22,0" IsManipulationEnabled="True" IsHyphenationEnabled="True" OverridesDefaultStyle="True" HorizontalAlignment="Center" VerticalAlignment="Center" >TypeName</TextBlock>
+        </Button>
         <TextBlock x:Name="m_icon" Text="置" Grid.Column="0" Style="{DynamicResource icons}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FFE08B35" IsEnabled="False"/>
-        <TextBlock x:Name="m_text" Foreground="White" HorizontalAlignment="Left" FontSize="18" Grid.Column="1" Margin="22,0,0,0" VerticalAlignment="Center" IsEnabled="False">TypeName</TextBlock>
-        <Button x:Name="m_choosen_button" Grid.ColumnSpan="3" Margin="0,2" Background="#05000000" BorderBrush="{x:Null}" Foreground="{x:Null}"></Button>
         <Button x:Name="m_hide_button" Content="置" Grid.Column="2" Style="{DynamicResource icons}" FontSize="20" Foreground="#FF424242" Margin="0,2" BorderBrush="{x:Null}" Background="{x:Null}"/>
     </Grid>
 </UserControl>

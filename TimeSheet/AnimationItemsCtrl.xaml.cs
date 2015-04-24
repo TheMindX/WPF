@@ -24,16 +24,32 @@ namespace TimeSheet
     {
         public virtual string getName() { return null; }
         public virtual string getIcon() { return null; }
-        public virtual AnimationProperty addProperty() { return null; }
-        public virtual void removeProperty(AnimationProperty p) { }
 
-        public virtual IEnumerable<AnimationProperty> getAllPropertys() { return new List<AnimationProperty>(); }
+        TimeSheetControl.TimeCurve mCurve = null;
+
+        public virtual AnimationProperty createProperty()
+        {
+            return null;
+        }
+
+        public virtual AnimationProperty addProperty(TimeSheetControl.TimeCurve.TimeKey key)
+        {
+            var prop = createProperty();
+            prop.m_animation_object = this;
+            if(key != null)
+            {
+                key.attachProperty = prop;
+            }
+            
+            return prop;
+        }
+
         public virtual Object toObject()
         {
             return this;
         }
 
-        public virtual AnimationObject clone()
+        public virtual AnimationObject newInstance()
         {
             return null;
         }
@@ -46,18 +62,10 @@ namespace TimeSheet
         {
             return m_animation_object;
         }
-        public virtual int getPropertyCount(){return 0;}
-        public virtual Type getPropertyType(int fidx){return typeof(int);}
-        public virtual string getPropertyName(int fidx){return "";}
-        public virtual string getPropertyString(int fidx) { return ""; }
-        public virtual void setPropertyString(int fidx, string str) { }
-        public virtual int getPropertyInt(int fidx) { return 1; }
-        public virtual void setPropertyInt(int fidx, int v) { }
-        public virtual void getPropertyIntSlide(int fidx, out int min, out int max) { min = 0; max = 0; }
         public virtual void attackObject(Object obj) { }
         public virtual Object getObject()//转换接口
         {
-            return null;
+            return this;
         }
         public virtual AnimationProperty copyFrom(AnimationProperty other)//属性的拷贝
         {
@@ -66,34 +74,34 @@ namespace TimeSheet
 
         public virtual void drawUI(Panel parent)
         {
-            for(int i = 0; i<getPropertyCount(); ++i)
-            {
-                Type t = getPropertyType(i);
-                string n = getPropertyName(i);
-                if(t == typeof(int))
-                {
-                    int min;
-                    int max;
-                    getPropertyIntSlide(i, out min, out max);
-                    var v = getPropertyInt(i);
-                    if(min<max)
-                    {
-                        //draw slide
-                        var s = new intSlider();
-                        parent.Children.Add(s);
-                    }
-                    else
-                    {
-                        var intf = new intField();
-                        parent.Children.Add(intf);
-                    }
-                }
-                else if (t == typeof(string))
-                {
-                    var strf = new stringField();
-                    parent.Children.Add(strf);
-                }
-            }
+            //for(int i = 0; i<getPropertyCount(); ++i)
+            //{
+            //    Type t = getPropertyType(i);
+            //    string n = getPropertyName(i);
+            //    if(t == typeof(int))
+            //    {
+            //        int min;
+            //        int max;
+            //        getPropertyIntSlide(i, out min, out max);
+            //        var v = getPropertyInt(i);
+            //        if(min<max)
+            //        {
+            //            //draw slide
+            //            var s = new intSlider();
+            //            parent.Children.Add(s);
+            //        }
+            //        else
+            //        {
+            //            var intf = new intField();
+            //            parent.Children.Add(intf);
+            //        }
+            //    }
+            //    else if (t == typeof(string))
+            //    {
+            //        var strf = new stringField();
+            //        parent.Children.Add(strf);
+            //    }
+            //}
         }
 
 
@@ -131,7 +139,7 @@ namespace TimeSheet
 
                 mi.Click += new RoutedEventHandler( (obj, arg) =>
                     {
-                        var item = proto.clone();
+                        var item = proto.newInstance();
                         var tl = m_timesheet.addTimeLine(" ");
                         m_timesheet.timeCurveSelected = tl;
                         tl.attackObject = item;
@@ -209,7 +217,7 @@ namespace TimeSheet
                     var ao = tc.attackObject as AnimationObject;
                     if(_editProperty == null || _editProperty.getAnimationObject() != ao)
                     {
-                        _editProperty = ao.addProperty();
+                        _editProperty = ao.addProperty(tk);
                     }
                 }
                 return _editProperty;
