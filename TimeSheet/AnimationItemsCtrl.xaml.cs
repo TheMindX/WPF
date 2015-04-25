@@ -30,17 +30,21 @@ namespace TimeSheet
         public AnimationtItem mUI
         {
             get
-            {   
+            {
+                if(_mUI == null)
+                {
+                    _mUI = new AnimationtItem();
+                    (_mUI as AnimationtItem).m_choosen_button.Background = new SolidColorBrush(Colors.Black);
+                    _mUI.name = getName();
+                    _mUI.icon = getIcon();
+                }
                 return _mUI;
             }
         }
 
         public void resetUI()
         {
-            _mUI = new AnimationtItem();
-            (_mUI as AnimationtItem).Background = new SolidColorBrush(Colors.Black);
-            _mUI.name = getName();
-            _mUI.icon = getIcon();
+            _mUI = null;
         }
 
         public virtual AnimationProperty createProperty()
@@ -157,8 +161,8 @@ namespace TimeSheet
                     {
                         var item = proto.newInstance();
                         var tl = m_timesheet.addTimeLine(" ");
-                        m_timesheet.timeCurveSelected = tl;
                         tl.attackObject = item;
+                        m_timesheet.timeCurveSelected = tl;
                         draw();
                     });
                 mContextMenu.Items.Add(mi);
@@ -214,20 +218,25 @@ namespace TimeSheet
 
         }
 
-        TimeSheetControl.TimeCurve oldCurve = null;
-        TimeSheetControl.TimeCurve.TimeKey oldKey = null;
+        //TimeSheetControl.TimeCurve oldCurve = null;
+        //TimeSheetControl.TimeCurve.TimeKey oldKey = null;
         AnimationProperty _editProperty = null;
         AnimationProperty editProperty
         {
             get
             {
                 var tk = m_timesheet.timeKeySelected;
+                var tc = m_timesheet.timeCurveSelected;
                 if(tk != null)
                 {
+                    if (tk.attachProperty == null)
+                    {
+                        var ao = tc.attackObject as AnimationObject;
+                        _editProperty = ao.addProperty(tk);
+                    }
                     return tk.attachProperty as AnimationProperty;
                 }
-                
-                var tc = m_timesheet.timeCurveSelected;
+
                 if(tc != null)
                 {
                     var ao = tc.attackObject as AnimationObject;
@@ -241,10 +250,31 @@ namespace TimeSheet
             
         }
 
-        void OnSelectChange(TimeSheetControl.TimeCurve oldc, TimeSheetControl.TimeCurve.TimeKey oldk, 
-            TimeSheetControl.TimeCurve newc, TimeSheetControl.TimeCurve.TimeKey newk)
+        void OnSelectChange(TimeSheetControl.TimeCurve oc, TimeSheetControl.TimeCurve.TimeKey ok, 
+            TimeSheetControl.TimeCurve nc, TimeSheetControl.TimeCurve.TimeKey nk)
         {
+                if(nc != oc)
+                {
+                    if (oc != null)
+                    {
+                        var ao = (oc.attackObject as AnimationObject);
+                        if (ao == null) return;
+                        if (ao.mUI == null) return;
+                        ao.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.Black);
+                    }
+                }
+                if (nc != null)
+                {
+                    var ao = (nc.attackObject as AnimationObject);
+                    if (ao == null) return;
+                    ao.mUI.m_choosen_button.Background = new SolidColorBrush(Color.FromArgb(127, 0, 0, 255));
+                }
 
+                if(nk != ok)
+                {
+                    editProperty.drawUI(m_propertys);
+                }
+                
         }
 
         void draw()
@@ -267,24 +297,29 @@ namespace TimeSheet
 
             if(editProperty != null)
             {
-                editProperty.drawUI(m_propertys);
+                editProperty.drawUI(m_propertys);//属性UI
             }
 
-            int idx = 0;
             //draw object list
             foreach(var curve in m_timesheet.timeCurves)
             {
                 var tmpCurve = curve;//for closure use
                 var ao = curve.attackObject as AnimationObject;
-                ao.resetUI();
                 m_objects.Children.Add(ao.mUI);
                 ao.mUI.m_choosen_button.Click += delegate(object sender, RoutedEventArgs e)
                     {
                         var ao1 = m_timesheet.timeCurveSelected.attackObject as AnimationObject;
-                        ao1.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.Black);
-                        m_timesheet.timeCurveSelected = tmpCurve;
-                        ao1 = m_timesheet.timeCurveSelected.attackObject as AnimationObject;
-                        ao1.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.YellowGreen);
+                        if(m_timesheet.timeCurveSelected != tmpCurve)
+                        {
+                            if (m_timesheet.timeKeySelected != null)
+                            {
+                                m_timesheet.timeKeySelected = null;
+                            }
+                            m_timesheet.timeCurveSelected = tmpCurve;
+                        }
+                        
+                        //ao1 = m_timesheet.timeCurveSelected.attackObject as AnimationObject;
+                        //ao1.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.YellowGreen);
                         m_timesheet.repaint();
                     };
             }
@@ -304,7 +339,7 @@ namespace TimeSheet
                 if ((string)m_play.Content != "暂")
                     m_play.Content = "暂";
             }
-            Console.WriteLine("onTime: " + t);
+            //Console.WriteLine("onTime: " + t);
         }
 
         private void BtnOnPlay(object sender, RoutedEventArgs e)
@@ -319,7 +354,14 @@ namespace TimeSheet
 
         private void BtnRemoveAnimation(object sender, RoutedEventArgs e)
         {
+            var cv = m_timesheet.timeCurveSelected;
+            if(cv != null)
+            {
+                var ao = (cv.attackObject as AnimationObject);
+                ((ao.mUI.Parent) as Panel).Children.Remove(ao.mUI);
 
+                m_timesheet.removeTimeLine(cv);
+            }
         }
 
         private void m_reset_Click(object sender, RoutedEventArgs e)
@@ -345,33 +387,16 @@ namespace TimeSheet
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            TimeSheetControl.evtOnPlaying += onPlaying;
-            TimeSheetControl.evtOnPickTime += t =>
-                {
-                    m_time_box.Text = t.ToString();
-                };
+            TimeSheetControl.evtOnAddTimeKey += OnAddKey;
+            TimeSheetControl.evtOnRemoveTimeKey += OnRemoveKey;
+            TimeSheetControl.evtOnSelectChanged += OnSelectChange;
 
-            TimeSheetControl.evtOnSelectChanged += delegate(TimeSheetControl.TimeCurve oc, TimeSheetControl.TimeCurve.TimeKey ok, 
-                TimeSheetControl.TimeCurve nc, TimeSheetControl.TimeCurve.TimeKey nk)
-            {
-                if(nc != oc)
+            
+            TimeSheetControl.evtOnPlaying += onPlaying;//时间轴播放
+            TimeSheetControl.evtOnPickTime += t =>//鼠标点击事件
                 {
-                    if (oc != null)
-                    {
-                        var ao = (oc.attackObject as AnimationObject);
-                        if (ao == null) return;
-                        if (ao.mUI == null) return;
-                        ao.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.Black);
-                    }
-                    if(nc != null)
-                    {
-                        var ao = (nc.attackObject as AnimationObject);
-                        if (ao == null) return;
-                        if (ao.mUI == null) return;
-                        ao.mUI.m_choosen_button.Background = new SolidColorBrush(Colors.YellowGreen);
-                    }
-                }
-            };
+                    m_time_box.Text = t;
+                };
         }
 
     }

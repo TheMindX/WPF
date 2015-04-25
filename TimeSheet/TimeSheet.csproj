@@ -65,15 +65,26 @@
     </Compile>
     <Compile Include="TestTimePlaying.cs" />
     <Compile Include="TestTimeSheet.cs" />
-    <Compile Include="intField.xaml.cs">
-      <DependentUpon>intField.xaml</DependentUpon>
+    <Compile Include="widgets\doubleTextBox.xaml.cs">
+      <DependentUpon>doubleTextBox.xaml</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="intSlider.xaml.cs">
+    <Compile Include="widgets\doubleField.xaml.cs">
+      <DependentUpon>doubleField.xaml</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="widgets\intField.xaml.cs">
+      <DependentUpon>intField.xaml</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="widgets\intSlider.xaml.cs">
       <DependentUpon>intSlider.xaml</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="TestRegAnimation.cs" />
-    <Compile Include="stringField.xaml.cs">
+    <Compile Include="widgets\stringField.xaml.cs">
       <DependentUpon>stringField.xaml</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="TimeSheetControl.xaml.cs">
       <DependentUpon>TimeSheetControl.xaml</DependentUpon>
@@ -86,13 +97,25 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="intField.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="widgets\doubleTextBox.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Page>
-    <Page Include="intSlider.xaml">
+    <Page Include="widgets\doubleField.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Page>
+    <Page Include="widgets\intField.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Page>
+    <Page Include="widgets\intSlider.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -106,9 +129,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="stringField.xaml">
+    <Page Include="widgets\stringField.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Page>
     <Page Include="Theme.xaml">
       <SubType>Designer</SubType>

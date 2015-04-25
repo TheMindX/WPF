@@ -329,6 +329,19 @@ namespace TimeSheet
             return tcurve;
         }
 
+        public bool removeTimeLine(TimeCurve tc)
+        {
+            bool ret = mTimeCurves.Remove(tc);
+            if (mTimeCurves.Count != 0)
+            {
+                timeCurveSelected = mTimeCurves[0];
+            }
+            else
+            {
+                timeCurveSelected = null;
+            }
+            return ret;
+        }
 
         public TimeCurve.TimeKey setKey(TimeCurve tcv, double time)
         {

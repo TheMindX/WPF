@@ -16,13 +16,25 @@ using System.Windows.Shapes;
 namespace TimeSheet
 {
     /// <summary>
-    /// intField.xaml 的交互逻辑
+    /// stringField.xaml 的交互逻辑
     /// </summary>
-    public partial class intField : UserControl
+    public partial class stringField : UserControl
     {
-        public intField()
+        public stringField()
         {
             InitializeComponent();
+        }
+
+        public string Text
+        {
+            get
+            {
+                return m_value.Text;
+            }
+            set
+            {
+                m_value.Text = value;
+            }
         }
     }
 }

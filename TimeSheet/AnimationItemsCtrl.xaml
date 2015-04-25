@@ -53,7 +53,7 @@
 
                 <Button Grid.Column="2" Content="前" x:Name="m_prekey" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" FontSize="14" Click="m_prekey_Click"/>
                 <Button Grid.Column="3" Content="后" x:Name="m_nextkey" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" FontSize="14" Click="m_nextkey_Click"/>
-                <TextBox x:Name="m_time_box" Grid.Column="4" FontSize="16"/>
+                <local:doubleTextBox x:Name="m_time_box" Grid.Column="4" FontSize="16" Grid.ColumnSpan="2"/>
                 <Button Grid.Column="6" Content="加" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" Click="BtnAddAnimation" FontSize="14"/>
                 <Button Grid.Column="7" Content="减" TextElement.FontFamily="/TimeSheet;component/Resources/#icons" Click="BtnRemoveAnimation" FontSize="14"/>
             </Grid>

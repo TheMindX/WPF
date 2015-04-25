@@ -28,6 +28,7 @@ namespace TimeSheet
                 var p = new stringField();
                 parent.Children.Add(p);
                 var s = new intSlider();
+                
                 parent.Children.Add(s);
             }
         }

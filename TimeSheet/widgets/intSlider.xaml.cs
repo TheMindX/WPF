@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,29 @@ namespace TimeSheet
         public intSlider()
         {
             InitializeComponent();
+        }
+
+        private void m_value_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (intField.sIsTextAllowed(m_value.Text) && intField.sIsTextAllowed(e.Text))
+                e.Handled = false;
+            else
+                e.Handled = true;
+        }
+
+
+        public int Text
+        {
+            get
+            {
+                int val = 0;
+                int.TryParse(m_value.Text, out val); ;
+                return val;
+            }
+            set
+            {
+                m_value.Text = value.ToString();
+            }
         }
 
         
