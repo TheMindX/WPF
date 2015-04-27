@@ -19,18 +19,66 @@ namespace TimeSheet
     {
         public class AnimationTest1Prop : AnimationProperty
         {
-            string path = "Audio/test.ac";
-            int vol = 80;
+            public string path = "Audio/test.ac";
+            public int vol = 1;
+            static int svol = 1;
 
-
+            public AnimationTest1Prop()
+            {
+                svol++;
+                vol = svol;
+            }
             public override void drawUI(Panel parent)
             {
+                base.drawUI(parent);
+
                 var p = new stringField();
                 parent.Children.Add(p);
+                p.m_label.Text = "路径";
+                p.m_value.Text = path;
+                p.m_value.TextChanged += (send, e) =>
+                {
+                    path = p.m_value.Text;
+                };
+                p.LostFocus += (send, e) =>
+                {
+                    changeNotify();
+                };
+
                 var s = new intSlider();
-                
                 parent.Children.Add(s);
+                s.m_label.Text = "音量";
+                s.m_value.Text = vol.ToString();
+                s.m_value.TextChanged += (send, e) =>
+                    {
+                        vol = int.Parse(s.m_value.Text);
+                    };
+                s.LostFocus += (sender, e) =>
+                    {
+                        changeNotify();
+                    };
             }
+
+            public override bool compare(AnimationProperty other)
+            {
+                return this.path == (other as AnimationTest1Prop).path
+                    && this.vol == (other as AnimationTest1Prop).vol;
+            }
+
+            public override void copyFrom(AnimationProperty other)
+            {
+                this.path = (other as AnimationTest1Prop).path;
+                this.vol = (other as AnimationTest1Prop).vol;
+            }
+
+            public override AnimationProperty clone()
+            {
+                var ret = new AnimationTest1Prop();
+                ret.copyFrom(this);
+                return ret;
+            }
+
+
         }
 
         public class AnimationTest1 : AnimationObject

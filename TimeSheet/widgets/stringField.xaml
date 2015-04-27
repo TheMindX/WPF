@@ -11,7 +11,7 @@
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Margin="5,7,0,7" TextWrapping="Wrap" Text="path" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="14" Foreground="White" Height="23" Width="83"/>
+        <TextBlock x:Name="m_label" Margin="5,7,0,7" TextWrapping="Wrap" Text="path" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="14" Foreground="White" Height="23" Width="83"/>
         <TextBox x:Name="m_value" Grid.Column="1" Margin="5,0" TextWrapping="Wrap" Text="Audio/test.ac" Background="Black" Foreground="White" Height="22" BorderThickness="1" Grid.ColumnSpan="2" FontSize="16" AcceptsReturn="True"/>
     </Grid>
 </UserControl>

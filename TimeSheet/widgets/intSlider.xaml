@@ -11,7 +11,7 @@
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Margin="5,7,0,7" TextWrapping="Wrap" Text="volumn" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="14" Foreground="White" Height="23" Width="83"/>
+        <TextBlock x:Name="m_label" Margin="5,7,0,7" TextWrapping="Wrap" Text="volumn" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="14" Foreground="White" Height="23" Width="83"/>
         <TextBox x:Name="m_value" Grid.Column="1" Margin="5,0" TextWrapping="Wrap" Text="{Binding ElementName=m_slider, Path=Value}" Background="Black" Foreground="White" Height="22" BorderThickness="1" FontSize="16" AcceptsReturn="False" PreviewTextInput="m_value_PreviewTextInput"/>
         <Slider x:Name="m_slider" Value="{Binding ElementName=m_value, Path=Text}" Grid.Column="2" Margin="5,0" VerticalAlignment="Center" IsSnapToTickEnabled="True" TickFrequency="1"/>
     </Grid>

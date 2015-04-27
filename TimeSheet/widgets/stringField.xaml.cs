@@ -25,6 +25,19 @@ namespace TimeSheet
             InitializeComponent();
         }
 
+        
+        public string Lable
+        {
+            get
+            {
+                return m_value.Text;
+            }
+            set
+            {
+                m_value.Text = value;
+            }
+        }
+
         public string Text
         {
             get

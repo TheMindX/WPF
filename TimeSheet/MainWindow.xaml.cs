@@ -27,8 +27,15 @@ namespace TimeSheet
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            //TestTimeSheet.testOfTimeSheet();
+            
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
             TestRegAnimation.tesstOfRegAnimObject();
+            m_externalAppControl.ExeName = "notepad.exe";
+            m_externalAppControl.openApp();
+            this.Unloaded += new RoutedEventHandler((s, e1) => { m_externalAppControl.Dispose(); });
         }
 
     }

@@ -17,9 +17,6 @@ namespace TimeSheet
 {
     /// <summary>
     /// AnimationItems.xaml 的交互逻辑
-    /// </summary>
-    /// 
-
     public class AnimationObject
     {
         public virtual string getName() { return null; }
@@ -75,8 +72,9 @@ namespace TimeSheet
         }
     }
 
-    public class AnimationProperty //automatic UI
+    public abstract class AnimationProperty //automatic UI
     {
+        public Panel mPanel = null;
         public AnimationObject m_animation_object = null;
         public virtual AnimationObject getAnimationObject()
         {
@@ -87,43 +85,140 @@ namespace TimeSheet
         {
             return this;
         }
-        public virtual AnimationProperty copyFrom(AnimationProperty other)//属性的拷贝
+
+        public abstract void copyFrom(AnimationProperty other);//属性的拷贝
+
+        public abstract AnimationProperty clone();
+        public virtual bool compare(AnimationProperty other)//属性的拷贝
         {
+            return false;
+        }
+
+        public AnimationProperty undoListCurrent()
+        {
+            if(m_undoList.Count != 0)
+            {
+                return m_undoList.Last();
+            }
             return null;
         }
 
-        public virtual void drawUI(Panel parent)
+        public bool isChange()
         {
-            //for(int i = 0; i<getPropertyCount(); ++i)
-            //{
-            //    Type t = getPropertyType(i);
-            //    string n = getPropertyName(i);
-            //    if(t == typeof(int))
-            //    {
-            //        int min;
-            //        int max;
-            //        getPropertyIntSlide(i, out min, out max);
-            //        var v = getPropertyInt(i);
-            //        if(min<max)
-            //        {
-            //            //draw slide
-            //            var s = new intSlider();
-            //            parent.Children.Add(s);
-            //        }
-            //        else
-            //        {
-            //            var intf = new intField();
-            //            parent.Children.Add(intf);
-            //        }
-            //    }
-            //    else if (t == typeof(string))
-            //    {
-            //        var strf = new stringField();
-            //        parent.Children.Add(strf);
-            //    }
-            //}
+            var undoAp = undoListCurrent();
+            if (undoAp == null) return true;
+            return !this.compare(undoAp);
+        }
+        
+        const int maxRedo = 5;
+        int undoIdx = -1;
+        List<AnimationProperty> m_undoList = new List<AnimationProperty>();
+        public void undo()
+        {
+            if (undoIdx <= 0) return;
+            undoIdx--;
+            this.copyFrom(m_undoList[undoIdx]);
         }
 
+        public void redo()
+        {
+            if (undoIdx+1 == m_undoList.Count) return;
+            undoIdx++;
+            this.copyFrom(m_undoList[undoIdx]);
+        }
+
+        public bool record()
+        {
+            if (!isChange()) return false;
+            AnimationProperty ap = this.clone();
+            if(undoIdx + 1 != m_undoList.Count)
+            {
+                m_undoList.RemoveRange(undoIdx + 1, m_undoList.Count - (undoIdx + 1));
+            }
+            m_undoList.Add(ap);
+            undoIdx++;
+            return true;
+        }
+
+        public virtual void changeNotify()
+        {
+            if (record())
+            {
+                //drawUI(mPanel);
+            }
+        }
+
+        Button m_record = null;
+        Button m_redo = null;
+        Button m_undo = null;
+        public virtual void drawUI(Panel parent)
+        {
+            mPanel = parent;
+            parent.Children.Clear();
+
+            StackPanel sp = new StackPanel();
+            parent.Children.Add(sp);
+            sp.Orientation = Orientation.Horizontal;
+
+            if(undoIdx == -1)
+                record();
+            //撤销
+            Button m_undo = new Button();
+            sp.Children.Add(m_undo);
+            m_undo.Content = "撤销";
+            m_undo.Width = 60;
+
+            //if (undoIdx <= 0)
+            //{
+            //    m_undo.IsEnabled = false;
+            //}
+            //else
+            {
+                m_undo.Click += (s, arg) =>
+                {
+                    undo();
+                    drawUI(mPanel);
+                };
+            }
+                
+            
+            //重做
+            m_redo = new Button();
+            sp.Children.Add(m_redo);
+            m_redo.Content = "重做";
+            m_redo.Width = 60;
+
+            //if (undoIdx+1 >= m_undoList.Count)
+            //{
+            //    m_undo.IsEnabled = false;
+            //}
+            //else
+            {
+                m_redo.Click += (s, arg) =>
+                {
+                    redo();
+                    drawUI(mPanel);
+                };
+            }
+
+            //记录
+            m_record = new Button();
+            sp.Children.Add(m_record);
+            m_record.Content = "记录";
+            m_record.Width = 60;
+            //if(!isChange() )
+            //{
+            //    m_record.IsEnabled = false;
+            //}
+            //else
+            {
+                m_record.Click += (s, arg) =>
+                {
+                    record();
+                    drawUI(parent);
+                };
+            }
+        }
 
         public TimeSheetControl.TimeCurve.TimeKey mKey;
     }
@@ -197,25 +292,29 @@ namespace TimeSheet
             }
         }
 
+        bool bKeyBind = false;
         void reset()
         {
             m_timesheet.reset();
             m_objects.Children.Clear();
             m_object_name.Text = "no objects";
 
-            TimeSheetControl.evtOnAddTimeKey += OnAddKey;
-            TimeSheetControl.evtOnRemoveTimeKey += OnRemoveKey;
-            TimeSheetControl.evtOnSelectChanged += OnSelectChange;
+            if(!bKeyBind)
+            {
+                var window = Window.GetWindow(this);
+                window.PreviewKeyDown += window_KeyDown;
+                bKeyBind = true;
+            }
         }
 
         void OnAddKey(TimeSheetControl.TimeCurve tc, TimeSheetControl.TimeCurve.TimeKey tk)
         {
-
+            //temly not use
         }
 
         void OnRemoveKey(TimeSheetControl.TimeCurve tc, TimeSheetControl.TimeCurve.TimeKey tk)
         {
-
+            //temply not use
         }
 
         //TimeSheetControl.TimeCurve oldCurve = null;
@@ -387,16 +486,39 @@ namespace TimeSheet
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            //这里只放绑定
             TimeSheetControl.evtOnAddTimeKey += OnAddKey;
             TimeSheetControl.evtOnRemoveTimeKey += OnRemoveKey;
             TimeSheetControl.evtOnSelectChanged += OnSelectChange;
 
-            
+
             TimeSheetControl.evtOnPlaying += onPlaying;//时间轴播放
             TimeSheetControl.evtOnPickTime += t =>//鼠标点击事件
+            {
+                m_time_box.Text = t;
+            };
+        }
+
+        private void window_KeyDown(object sender, RoutedEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.Z) && Keyboard.IsKeyDown(Key.LeftCtrl))
+            {
+                var ao = editProperty;
+                if (ao != null)
                 {
-                    m_time_box.Text = t;
-                };
+                    ao.undo();
+                    ao.drawUI(ao.mPanel);
+                }
+            }
+            else if (Keyboard.IsKeyDown(Key.Y) && Keyboard.IsKeyDown(Key.LeftCtrl))
+            {
+                var ao = editProperty;
+                if (ao != null)
+                {
+                    ao.redo();
+                    ao.drawUI(ao.mPanel);
+                }
+            }
         }
 
     }

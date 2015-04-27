@@ -4,10 +4,50 @@
         xmlns:local="clr-namespace:TimeSheet"
         xmlns:avalonDock="clr-namespace:Xceed.Wpf.AvalonDock;assembly=Xceed.Wpf.AvalonDock"
         xmlns:avalonDockLayout="clr-namespace:Xceed.Wpf.AvalonDock.Layout;assembly=Xceed.Wpf.AvalonDock"
-        Title="MainWindow" Height="420" Width="890" Background="#FF0F0F0F">
-    <StackPanel>
-        <local:AnimationItemsCtrl x:Name="m_animator" Height="298"/>
-        <Button Height="24" Click="Button_Click"></Button>
-        <Button Height="24"></Button>
-    </StackPanel>
+        Title="MainWindow" Height="677" Width="1079" Background="#FF0F0F0F">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <!--menu-->
+            <RowDefinition Height="1*"/>
+            <!--preview and data-->
+            <RowDefinition Height="Auto"/>
+            <!--split-->
+            <RowDefinition Height="1*"/>
+            <!--timesheet-->
+            <RowDefinition Height="20"/>
+            <!--status-->
+            <!--timesheet-->
+        </Grid.RowDefinitions>
+        <GridSplitter Grid.Row="2" VerticalContentAlignment="Stretch" Height="3" HorizontalAlignment="Stretch">
+        </GridSplitter>
+        
+        <local:AnimationItemsCtrl Grid.Row="3" x:Name="m_animator"/>
+        
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="330"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3"></GridSplitter>
+            <Grid Grid.Column="2">
+                <local:ExternalAppControl x:Name="m_externalAppControl"/>
+            </Grid>
+            <Grid Grid.Column="0"></Grid>
+        </Grid>
+        <!--Button Height="20" Width="40" Click="Button_Click" Grid.Row="0" HorizontalAlignment="Left">test</-->
+        
+            <Menu>
+            <MenuItem Header="_File"/>
+            <MenuItem Header="_Open"/>
+            <MenuItem Header="_Close"/>
+            <MenuItem Header="_Save"/>
+            <MenuItem Header="_Test" Click="MenuItem_Click"/>
+        </Menu>
+            
+        
+
+
+    </Grid>
 </Window>

@@ -19,11 +19,39 @@ using System.Windows.Threading;
 
 namespace TimeSheet
 {
+    abstract class ICommand
+    {
+        public abstract void redo();
+        public abstract void undo();
+    }
+
+
+    class Command : ICommand
+    {
+        public System.Action actRedo;
+        public System.Action actUndo;
+        public override void redo()
+        {
+            if (actRedo != null)
+            {
+                actRedo();
+            }
+        }
+        public override void undo()
+        {
+            if (actUndo != null)
+            {
+                actUndo();
+            }
+        }
+    }
+
+    
     /// <summary>
     /// TimeSheetControl.xaml 的交互逻辑
     /// </summary>
     public partial class TimeSheetControl : UserControl
-    {
+    {   
         public TimeSheetControl()
         {
             InitializeComponent();
