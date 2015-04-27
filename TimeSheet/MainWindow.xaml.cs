@@ -33,10 +33,24 @@ namespace TimeSheet
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             TestRegAnimation.tesstOfRegAnimObject();
-            m_externalAppControl.ExeName = "notepad.exe";
+            m_externalAppControl.ExeName = "notepad++.exe";
             m_externalAppControl.openApp();
             this.Unloaded += new RoutedEventHandler((s, e1) => { m_externalAppControl.Dispose(); });
+
+            List<Item> items = new List<Item>();
+            items.Add(new Item(){Title="动画1"});
+            items.Add(new Item() { Title = "动画2" });
+            items.Add(new Item() { Title = "动画3" });
+            items.Add(new Item() { Title = "动画4" });
+            items.Add(new Item() { Title = "动画5" });
+            m_items.ItemsSource = items;
         }
 
+
+        public class Item
+        {
+            public string Title { get; set; }
+            public int Completion { get; set; }
+        }
     }
 }

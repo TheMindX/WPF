@@ -64,11 +64,13 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <TextBlock x:Name="m_object_name" FontSize="20" Text="head" HorizontalAlignment="Center" FontStyle="Italic" Margin="0,5,0,15" Foreground="White"/>
-                    <StackPanel x:Name="m_propertys">
+                <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock x:Name="m_object_name" FontSize="20" Text="head" HorizontalAlignment="Center" FontStyle="Italic" Margin="0,5,0,15" Foreground="White"/>
+                        <StackPanel x:Name="m_propertys">
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                </ScrollViewer>
                 <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3">
                 </GridSplitter>
                 <ScrollViewer Grid.Column="2" x:Name="m_scroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ScrollChanged="m_scroll_ScrollChanged">

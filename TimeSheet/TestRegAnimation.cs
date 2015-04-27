@@ -51,12 +51,33 @@ namespace TimeSheet
                 s.m_value.Text = vol.ToString();
                 s.m_value.TextChanged += (send, e) =>
                     {
-                        vol = int.Parse(s.m_value.Text);
+                        int.TryParse(s.m_value.Text, out vol);
                     };
                 s.LostFocus += (sender, e) =>
                     {
                         changeNotify();
                     };
+                s = new intSlider();
+                parent.Children.Add(s);
+                s = new intSlider();
+                parent.Children.Add(s);
+                s = new intSlider();
+                parent.Children.Add(s);
+                s = new intSlider();
+                parent.Children.Add(s);
+                s = new intSlider();
+                parent.Children.Add(s);
+                s = new intSlider();
+                parent.Children.Add(s);
+                s = new intSlider();
+                parent.Children.Add(s);
+                s = new intSlider();
+                parent.Children.Add(s);
+                s = new intSlider();
+                parent.Children.Add(s);
+                s = new intSlider();
+                parent.Children.Add(s);
+
             }
 
             public override bool compare(AnimationProperty other)
